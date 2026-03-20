@@ -48,11 +48,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     });
   }
 
-  private getMessage(
-    response: string | Record<string, unknown>,
-  ): string | undefined {
+  private getMessage(response: string | object): string | undefined {
     if (typeof response === 'string') {
       return response;
+    }
+
+    if (!('message' in response)) {
+      return undefined;
     }
 
     const message = response.message;

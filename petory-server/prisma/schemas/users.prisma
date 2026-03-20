@@ -1,0 +1,30 @@
+model User {
+  id             String             @id @default(uuid()) @db.Uuid
+  email          String?            @unique
+  phone          String?            @unique
+  nickname       String
+  avatar         String?
+  status         UserStatus         @default(ACTIVE)
+  lastLoginAt    DateTime?          @map("last_login_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  authIdentities UserAuthIdentity[]
+  userRoles      UserRole[]
+
+  @@map("users")
+}
+
+model UserAuthIdentity {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  provider       AuthProvider
+  providerUserId String       @map("provider_user_id")
+  credentialHash String?      @map("credential_hash")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("user_auth_identities")
+}

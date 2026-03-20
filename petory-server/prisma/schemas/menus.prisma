@@ -1,0 +1,38 @@
+model Menu {
+  id             String      @id @default(uuid()) @db.Uuid
+  parentId       String?     @map("parent_id") @db.Uuid
+  code           String      @unique
+  name           String
+  path           String
+  componentKey   String      @map("component_key")
+  icon           String?
+  sort           Int
+  type           MenuType
+  visible        Boolean     @default(true)
+  status         MenuStatus  @default(ACTIVE)
+  permissionCode String?     @map("permission_code")
+  isExternal     Boolean     @default(false) @map("is_external")
+  keepAlive      Boolean     @default(false) @map("keep_alive")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  parent         Menu?       @relation("MenuChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children       Menu[]      @relation("MenuChildren")
+  roleMenus      RoleMenu[]
+
+  @@index([parentId])
+  @@map("menus")
+}
+
+model RoleMenu {
+  id        String   @id @default(uuid()) @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  menuId    String   @map("menu_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, menuId])
+  @@index([roleId])
+  @@index([menuId])
+  @@map("role_menus")
+}
