@@ -10,17 +10,19 @@
 
 ## 2. 当前状态
 
-Web 真实工程目录为 `petory-web/`，当前由官方 Vite React TypeScript 模板初始化。
+Web 真实工程目录为 `petory-web/`，当前已从官方 Vite React TypeScript 模板演进到 auth2 基线阶段。
 
 当前已确认的现状：
 
 - 使用 React 19
 - 使用 Vite 8
 - 使用 TypeScript 5
-- 当前页面仍是模板默认演示内容
-- 当前还未接入路由、状态管理、请求层或业务模块
+- 已建立 `app / shared / features / pages / layouts` 分层目录
+- 已落地基础登录页、应用壳层和最小受保护路由
+- 已接入基于 `axios` 的 class 形态请求层
+- 已接入 Web Cookie 登录态闭环
 
-因此，本文件中的实现细则主要用于后续演进，不代表仓库里这些能力已经落地。
+因此，本文件既记录当前已落地的 Web 基线，也保留后续演进方向；涉及未完成部分会明确标注。
 
 ---
 
@@ -32,18 +34,20 @@ Web 真实工程目录为 `petory-web/`，当前由官方 Vite React TypeScript 
 - Vite
 - TypeScript
 - ESLint
+- React Router
+- `axios`
+- class 形态请求层
 
 ### 3.2 规划中的前端技术栈
 
-- React Router
 - Zustand
 - TanStack Query
 - Ant Design
 - Ant Design X
 - Tailwind CSS
-- 请求封装层
+- 更完整的应用状态、组件和表单体系
 
-说明：上述技术栈来自 `fa.md` 与项目总纲，当前可作为落地方向，不应表述为已接入。
+说明：上述技术栈来自 `fa.md` 与项目总纲，其中 Router 与基础请求层已在 auth / auth2 阶段落地，其余仍作为落地方向。
 
 ---
 
@@ -416,6 +420,14 @@ shared/lib/request/
 
 Web 的 request 层不与小程序共享。
 
+当前已落地：
+
+- 请求层已采用 class 形态 `http`
+- 支持泛型调用形式，如 `http.post<ResultType>(...)`
+- 默认携带 Cookie 凭据
+- 遇到 `401` 时会尝试调用 `/v1/auth/refresh` 并重放原请求
+- 当前不在前端持久化 bearer token
+
 ### 11.4 大屏扩展建议
 
 如果后续有大屏：
@@ -456,10 +468,11 @@ Web 端边界约束如下：
 ## 14. 当前结论
 
 1. `petory-web/` 是独立前端工程，不在 monorepo 中。
-2. 当前代码仍是 Vite 模板页，业务页面和应用层基础设施尚未落地。
-3. 文档已整合 `fa.md` 的技术栈与实现规划，但这些规划内容当前不应写成已完成能力。
+2. 当前已经完成登录页、基础应用壳层和 Web auth2 闭环，不再是纯模板页状态。
+3. 文档已整合 `fa.md` 的技术栈与实现规划，其中未落地部分仍不应写成已完成能力。
 4. 前端正式采用 `app / shared / features / pages / layouts` 分层方向。
-5. Zustand 只管理会话态与 UI 态，React Query 管服务端状态。
-6. 主题系统属于应用级能力，推荐落在 `app/theme/`，并与 `AppProviders`、`app/styles/` 配合落地。
-7. 动态路由由后端菜单驱动，页面组件由前端 `componentKey` 白名单映射解析。
-8. 新功能应按“类型 -> query -> 页面 -> 权限”闭环补齐。
+5. 基础请求层已经落地为 class 形态 `axios` 客户端，后续应在此基础上继续收敛。
+6. Zustand 只管理会话态与 UI 态，React Query 管服务端状态。
+7. 主题系统属于应用级能力，推荐落在 `app/theme/`，并与 `AppProviders`、`app/styles/` 配合落地。
+8. 动态路由由后端菜单驱动，页面组件由前端 `componentKey` 白名单映射解析。
+9. 新功能应按“类型 -> query -> 页面 -> 权限”闭环补齐。

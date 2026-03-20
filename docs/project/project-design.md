@@ -47,13 +47,13 @@ Petory Portal 是一个围绕宠物档案、健康记录、疫苗管理、出行
 - `petory-web/`：React + Vite Web 前端工程
 - `mini-program/`：Taro + React 微信小程序工程
 
-当前三个工程都已完成各自官方 CLI 初始化，但仍处于非常早期的基础状态：
+当前仓库已经完成基础搭建，并在 `auth` / `auth2` 阶段落下了第一批真实能力：
 
-- `petory-server/` 仍以 Nest 默认骨架为主
-- `petory-web/` 仍以 Vite/React 默认模板页为主
-- `mini-program/` 仍以 Taro 默认首页为主
+- `petory-server/` 已完成 `common / infra / modules` 分层基线，并落地最小认证能力
+- `petory-web/` 已完成应用级分层、基础登录页和 Web 登录闭环
+- `mini-program/` 已完成环境变量基线与 Bearer Token 请求层设计
 
-因此，项目文档应理解为“仓库约束 + 产品规划 + 演进方向”，不能把规划内容当作当前已实现能力。
+但项目整体仍处于早期阶段，尚未进入大规模业务模块建设期。因此，项目文档仍应理解为“仓库约束 + 已落地基线 + 产品规划 + 演进方向”，不能把后续规划内容当作当前已实现能力。
 
 ---
 
@@ -140,6 +140,10 @@ Web：
 - Vite 8
 - TypeScript 5
 - ESLint
+- React Router
+- `axios`
+- class 形态请求层
+- 基础主题与应用启动壳层
 
 Server：
 
@@ -148,12 +152,21 @@ Server：
 - Jest
 - ESLint
 - Prettier
+- `@nestjs/config`
+- `class-validator` / `class-transformer`
+- Prisma
+- PostgreSQL
+- Redis
+- Web Cookie 双 Token / Mini Bearer Token 双认证兼容
 
 Mini Program：
 
 - Taro 4.x
 - React 写法
 - TypeScript
+- `.env.dev / .env.prod` 环境变量基线
+- class 形态请求层
+- Bearer Token 认证方向
 
 包管理与环境：
 
@@ -176,17 +189,13 @@ Web：
 
 Server：
 
-- Prisma
-- PostgreSQL
-- Redis
 - Bull / Queue（按需）
 - SSE（按需，用于 LLM 流式输出）
-- `class-validator` / `class-transformer`
 
 Mini Program：
 
-- 独立请求层
-- 独立登录态管理
+- 微信平台真实登录能力接入
+- refresh 续签闭环
 - 按小程序端特性单独处理缓存与鉴权
 
 ### 6.3 技术选型说明
@@ -248,6 +257,7 @@ Mini Program：
 - Web 走 `accessToken + refreshToken` 双 Cookie
 - 微信小程序走 Bearer Token
 - 微信小程序第一阶段优先开发“微信绑定手机号一键登录”
+- 当前已完成 Web 最小登录闭环与 Mini Bearer Token 能力基线
 
 ### 8.2 RBAC 与菜单模块
 
@@ -319,22 +329,28 @@ Mini Program：
 
 ### 9.2 Web
 
-建议方案：
+当前基线：
 
 - 使用 HttpOnly Cookie 承载 `accessToken` 与 `refreshToken`
 - `accessToken` 专门用于当前接口鉴权
 - `refreshToken` 不直接参与业务接口鉴权，只用于无感刷新 `accessToken`
-- 登录后通过 `/auth/profile` 或 `/me` 获取初始化信息
+- 登录后通过 `/v1/auth/profile` 获取初始化信息
+- 当前 Web 请求层已支持 `401 -> /v1/auth/refresh -> 原请求重放` 的最小闭环
 
 ### 9.3 微信小程序
 
-建议方案：
+当前方向：
 
 - `wx.login()` 获取 `code`
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
 - 小程序侧优先使用微信绑定手机号一键登录能力，拿到手机号后完成用户匹配或创建
 - 服务端基于业务用户签发 JWT
 - 小程序通过 `Authorization: Bearer xxx` 调用接口
+
+当前落地边界：
+
+- Bearer Token 请求模式已经在小程序请求层设计中落地
+- 微信平台真实能力尚未接入，手机号一键登录目前仍是明确设计方向，不应写成已完成
 
 ### 9.4 统一返回结构
 
@@ -396,6 +412,7 @@ Mini Program：
 - 文档与 `.agents` 规则统一
 - 环境与包管理约束收敛
 - 多线程协作规范建立
+- 已完成
 
 ### Phase 2：权限底座
 
@@ -403,6 +420,14 @@ Mini Program：
 - AuthGuard / PermissionGuard
 - `/auth/profile`
 - 后台角色、菜单、权限配置能力
+
+当前进度：
+
+- 已完成最小 auth2 基线：
+  - 服务端已接入 Prisma、PostgreSQL、Redis、DTO 校验和双端认证兼容
+  - Web 已完成双 Cookie 登录闭环
+  - Mini 已完成 Bearer Token 请求层基线
+- 完整 RBAC 管理后台、菜单树配置、角色权限维护仍未完成
 
 ### Phase 3：核心业务
 
@@ -461,9 +486,10 @@ docs/features/
 
 1. 当前项目以 `petory-server/`、`petory-web/`、`mini-program/` 作为真实协作目录。
 2. 当前仓库不是 monorepo，也未接入 workspace 体系。
-3. PRD 中的产品模块、技术选型和多端策略已纳入本文档，但必须区分“规划”与“已落地”。
-4. Web 与 Server 当前通过接口契约协作，不依赖源码互引。
-5. Mini Program 共仓管理，但不参与跨端运行时代码共享。
-6. 权限系统采用 `User -> Role -> Permission` 的设计方向。
-7. Web 使用 `accessToken + refreshToken` Cookie 方向，小程序使用 Bearer Token 方向。
-8. 后续所有专项文档若与当前仓库结构冲突，应以当前真实目录和本文档修正后的结论为准。
+3. `auth2` 已经把环境变量、Web 双 Cookie、Mini Bearer Token、Prisma、PostgreSQL、Redis 等认证基线真正接入到项目中。
+4. PRD 中的产品模块、技术选型和多端策略已纳入本文档，但仍必须区分“规划”与“已落地”。
+5. Web 与 Server 当前通过接口契约协作，不依赖源码互引。
+6. Mini Program 共仓管理，但不参与跨端运行时代码共享。
+7. 权限系统采用 `User -> Role -> Permission` 的设计方向，当前只完成了登录所需的最小查询与返回。
+8. Web 使用 `accessToken + refreshToken` Cookie 方向，小程序使用 Bearer Token 方向。
+9. 后续所有专项文档若与当前仓库结构冲突，应以当前真实目录和本文档修正后的结论为准。

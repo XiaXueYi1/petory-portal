@@ -10,17 +10,20 @@
 
 ## 2. 当前状态
 
-后端真实工程目录为 `petory-server/`，当前由官方 Nest CLI 初始化，仍处于基础骨架阶段。
+后端真实工程目录为 `petory-server/`，当前已从官方 Nest CLI 初始骨架演进到 auth2 基线阶段。
 
 当前已确认的现状：
 
 - 使用 NestJS 11
 - 入口文件为 `src/main.ts`
 - 根模块为 `src/app.module.ts`
-- 当前仅保留默认 `AppController` 与 `AppService`
-- 还未接入 Prisma、Redis、认证、RBAC 或业务模块
+- 已建立 `common / infra / modules` 分层目录
+- 已落地认证相关模块与公共鉴权基础设施
+- 已接入 Prisma、PostgreSQL、Redis
+- 已启用全局 `ValidationPipe`
+- 已支持 Web Cookie 与 Mini Bearer 两种认证类型
 
-因此，本文件中的实现细则主要用于后续演进，不代表这些能力已经落地。
+因此，本文件既记录当前已落地的 auth2 基线，也记录后续演进方向；涉及未完成部分会明确标注。
 
 ---
 
@@ -33,19 +36,20 @@
 - Jest
 - ESLint
 - Prettier
-
-### 3.2 规划中的后端技术栈
-
+- `@nestjs/config`
+- `class-validator` / `class-transformer`
 - Prisma
 - PostgreSQL
 - Redis
+
+### 3.2 规划中的后端技术栈
+
 - Bull / Queue（按需）
 - SSE（按需）
-- `class-validator` / `class-transformer`
 - Passport（按需）
-- Web Cookie 双 Token / 小程序 Bearer Token 双认证兼容
+- Web Cookie 双 Token / 小程序 Bearer Token 双认证兼容增强能力
 
-说明：上述内容来自 `ba.md` 与项目总纲，当前属于规划预留，不应表述为已落地。
+说明：上述内容来自 `ba.md` 与项目总纲，其中 Prisma、PostgreSQL、Redis 和基础认证兼容已在 auth2 落地，其余仍属于规划预留。
 
 ---
 
@@ -243,6 +247,14 @@ modules/pets/
 - Web 走 Cookie
 - 小程序走 Authorization Header
 
+当前已落地：
+
+- `AuthGuard` 已接入真实鉴权流程，并支持 `@Public()`
+- Web 当前优先从 Cookie 中解析 access token
+- Mini / 其他 Bearer 请求当前从 `Authorization` 读取 access token
+- 客户端类型统一从请求头 `x-client-type` 识别
+- 登录、刷新、注销、profile 已进入真实模块，不再是内存假数据接口
+
 补充约束：
 
 - `accessToken` 专门用于接口鉴权
@@ -297,6 +309,7 @@ modules/pets/
 
 - 小程序登录第一阶段优先落地“微信绑定手机号一键登录”
 - 后端需要基于 `code` 换取 `openid + session_key`，并结合手机号完成用户匹配或创建
+- 当前 `POST /auth/wechat-mini/login` 仅完成接口骨架预留，真实微信平台联调尚未落地
 
 ### 9.3 RBAC 模块职责
 
@@ -361,6 +374,12 @@ modules/pets/
 - 不允许只改 schema 不提交 migration
 - 不允许绕过 migration 直接改生产表结构
 
+当前状态补充：
+
+- auth2 阶段已经使用 Prisma 管理本地开发数据库
+- 当前主线仍缺少正式 migration 文件
+- 认证相关表已在本地开发库通过 `db push` 落地，后续应逐步切回 migration 流程
+
 ---
 
 ## 11. 业务模块设计建议
@@ -406,6 +425,11 @@ modules/pets/
 - 系统配置缓存
 - 频繁读取但变更少的数据
 - 登录态辅助（如需要）
+
+当前已落地：
+
+- auth2 已使用 Redis 存储 refresh 会话
+- 当前 key 方向为认证刷新会话，不代表完整缓存体系已完成
 
 ### 12.2 队列
 
@@ -456,9 +480,10 @@ modules/pets/
 ## 15. 当前结论
 
 1. `petory-server/` 是独立后端工程，不在 monorepo 中。
-2. 当前仍是 Nest 默认骨架，业务能力尚未开始落地。
-3. 文档已整合 `ba.md` 的技术栈与实现规划，但这些规划内容当前不应写成已完成能力。
-4. 后端正式采用 `common / infra / modules` 分层方向。
+2. 当前已经完成 auth2 基线，后端不再是纯 Nest 默认骨架。
+3. 文档已整合 `ba.md` 的技术栈与实现规划，其中未落地部分仍不应写成已完成能力。
+4. 后端正式采用 `common / infra / modules` 分层方向，并已在认证模块开始落地。
 5. 认证与鉴权分离实现，复杂 Prisma 查询应收敛到 Repository。
 6. Prisma Schema 采用“主 `schema.prisma` + 分模块 `.prisma` 文件”组织方式。
-7. 业务记录优先分表，不做巨型通用表。
+7. Redis、PostgreSQL、Prisma 已在 auth2 中完成本地开发接入。
+8. 业务记录优先分表，不做巨型通用表。

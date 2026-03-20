@@ -2,7 +2,7 @@
 
 ## 1. 文档目标
 
-本文档记录当前仓库的本地开发环境要求、三端启动方式，以及哪些基础设施属于后续规划。
+本文档记录当前仓库的本地开发环境要求、三端启动方式，以及当前已经落地或仍处于规划中的基础设施。
 
 ---
 
@@ -53,6 +53,11 @@
 
 目录：`petory-server/`
 
+环境文件：
+
+- `.env.dev`
+- `.env.prod`
+
 安装依赖：
 
 ```bash
@@ -72,6 +77,11 @@ pnpm run start:dev
 ### 4.2 Web
 
 目录：`petory-web/`
+
+环境文件：
+
+- `.env.dev`
+- `.env.prod`
 
 安装依赖：
 
@@ -94,6 +104,11 @@ pnpm run build
 ### 4.3 Mini Program
 
 目录：`mini-program/`
+
+环境文件：
+
+- `.env.dev`
+- `.env.prod`
 
 安装依赖：
 
@@ -123,22 +138,31 @@ pnpm run build:weapp
 - `petory-web/` 已有 Vite 启动、构建和 lint 脚本
 - `mini-program/` 已有 Taro 多端构建脚本
 - `mini-program/dist/` 已存在构建产物
+- `petory-server/` 已接入 `.env.dev / .env.prod`、Prisma、PostgreSQL、Redis 和 auth2 相关配置
+- `petory-web/` 已接入 `.env.dev / .env.prod` 和 Web auth2 相关配置
+- `mini-program/` 已接入 `.env.dev / .env.prod` 和 mini auth2 请求层配置
 
 建议后续将 `mini-program/dist/` 是否纳入版本控制单独确认，并补充仓库规则。
 
 ---
 
-## 6. 基础设施规划项
+## 6. 当前基础设施与环境变量基线
 
-以下内容在项目设计文档中被提到，但当前仓库中还没有真正完成接入：
+当前已落地：
 
 - PostgreSQL
 - Redis
 - Prisma
-- 统一 `.env` 规范
+- 三端 `.env.dev / .env.prod` 基线
+
+当前仍未完成：
+
+- 生产环境真实变量填充
+- 小程序微信平台真实登录能力
+- Prisma migration 正式流程收敛
 - 跨端共享类型或共享工具
 
-因此，下面的环境变量只能视为规划示例，不能视为当前可直接运行的既定配置：
+本地开发环境当前使用的数据库与缓存基线如下：
 
 ```env
 DATABASE_URL="postgresql://postgres:123456@localhost:5432/postgres?schema=public"
@@ -157,6 +181,13 @@ REDIS_PORT=6379
 - 以上连接信息仅用于当前本地开发环境记录
 - 正式环境连接参数后续应通过独立环境变量管理
 
+当前 auth2 相关约束补充：
+
+- `petory-server/.env.dev` 已包含认证密钥、JWT、数据库、Redis、开发注册密钥等 auth2 所需字段
+- `petory-web/.env.dev` 已包含 API baseURL、请求超时、refresh 开关与路径等字段
+- `mini-program/.env.dev` 已包含 Bearer Token header、超时、登录策略等字段
+- `.env.prod` 当前主要作为占位，不应视为生产可用配置
+
 ---
 
 ## 7. 当前结论
@@ -165,8 +196,8 @@ REDIS_PORT=6379
 2. 文档中不应再出现根级 `pnpm workspace` 的环境要求。
 3. 开发阶段默认不主动执行 `build`，按需再执行。
 4. 不保留临时日志文件，过程记录统一写入文档。
-5. 数据库、缓存和 ORM 仍属于后续建设项。
-6. 后续一旦接入真实基础设施，应同步补充每端 `.env` 字段说明和启动前置条件。
+5. 数据库、缓存和 ORM 已在 auth2 中完成本地开发接入，但生产配置和 migration 流程仍未完成。
+6. 后续新增基础设施时，仍应同步补充每端 `.env` 字段说明和启动前置条件。
 
 ---
 
