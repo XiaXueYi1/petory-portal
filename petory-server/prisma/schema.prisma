@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE   @map("active")
+  DISABLED @map("disabled")
+}
+
+enum RoleStatus {
+  ACTIVE   @map("active")
+  DISABLED @map("disabled")
+}
+
+enum PermissionStatus {
+  ACTIVE   @map("active")
+  DISABLED @map("disabled")
+}
+
+enum MenuStatus {
+  ACTIVE   @map("active")
+  DISABLED @map("disabled")
+}
+
+enum MenuType {
+  DIRECTORY @map("directory")
+  MENU      @map("menu")
+  PAGE      @map("page")
+}
+
+enum AuthProvider {
+  WEB_PASSWORD         @map("web_password")
+  WECHAT_MINI_PROGRAM  @map("wechat_mini_program")
+}

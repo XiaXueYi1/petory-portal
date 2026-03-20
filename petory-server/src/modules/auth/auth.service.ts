@@ -1,193 +1,340 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { createHmac, timingSafeEqual } from 'node:crypto';
-import type { Request } from 'express';
-import { AppException } from '../../common';
-import { HTTP_ERROR_CODE } from '../../common/constants';
 import {
-  ACCESS_TOKEN_TTL_SECONDS,
-  JWT_AUDIENCE,
-  JWT_ISSUER,
-  JWT_SECRET,
-  SESSION_COOKIE_NAME,
+  BadRequestException,
+  Injectable,
+  NotImplementedException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
+import {
+  AUTH_CLIENT_TYPE_HEADER,
+  AUTH_DEV_REGISTER_SECRET_HEADER,
+  AUTH_WEB_CLIENT_TYPE,
+  SUPPORTED_AUTH_CLIENT_TYPES,
 } from './auth.constants';
-import type { LoginDto, LoginResponseDto } from './dto';
+import { AuthPasswordService } from './auth-password.service';
+import { AuthSessionService } from './auth-session.service';
+import { AuthTokenService } from './auth-token.service';
+import type {
+  AuthClientType,
+  AuthenticatedRequest,
+  AuthProfile,
+} from './auth.types';
+import type {
+  DevRegisterDto,
+  LoginDto,
+  LoginResponseDto,
+  LogoutDto,
+  RefreshDto,
+  WechatMiniLoginDto,
+} from './dto';
 import { AuthRepository } from './repository/auth.repository';
-import type { JwtAccessPayload } from './auth.types';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly authRepository: AuthRepository) {}
+  constructor(
+    private readonly authRepository: AuthRepository,
+    private readonly authPasswordService: AuthPasswordService,
+    private readonly authTokenService: AuthTokenService,
+    private readonly authSessionService: AuthSessionService,
+  ) {}
 
-  login(payload: LoginDto): LoginResponseDto {
-    const username = payload.username?.trim();
-    const password = payload.password?.trim();
-    const clientType = payload.clientType ?? 'web';
+  async login(
+    payload: LoginDto,
+    request: Request,
+    response: Response,
+  ): Promise<LoginResponseDto> {
+    const clientType = this.getClientType(request);
+    const username = payload.username.trim();
+    const password = payload.password.trim();
+    const user = await this.authRepository.findPasswordUserByUsername(username);
 
-    if (!username || !password) {
-      throw new AppException({
-        code: HTTP_ERROR_CODE.UNAUTHORIZED,
-        message: 'Username and password are required',
-      });
-    }
-
-    const user = this.authRepository.findUserByUsername(username);
-
-    if (!user || user.password !== password) {
+    if (
+      !user ||
+      user.status !== 'active' ||
+      !user.passwordHash ||
+      !this.authPasswordService.verifyPassword(password, user.passwordHash)
+    ) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    const accessToken = this.signAccessToken({
-      sub: user.id,
+    await this.authRepository.markUserLastLogin(user.userId);
+
+    const tokens = this.authTokenService.issueTokens(user, clientType);
+    await this.authSessionService.storeRefreshSession({
+      sessionId: tokens.sessionId,
+      userId: user.userId,
       username: user.username,
-      roles: user.roles,
+      clientType,
+      currentRefreshTokenId: tokens.refreshTokenId,
+      expiresAt: Math.floor(Date.now() / 1000) + tokens.refreshExpiresIn,
+    });
+
+    const profile = this.authRepository.toProfile(user);
+
+    if (clientType === AUTH_WEB_CLIENT_TYPE) {
+      this.writeWebCookies(response, tokens.accessToken, tokens.refreshToken);
+
+      return {
+        expiresIn: tokens.accessExpiresIn,
+        refreshExpiresIn: tokens.refreshExpiresIn,
+        authMode: 'cookie',
+        profile,
+      };
+    }
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: tokens.accessExpiresIn,
+      refreshExpiresIn: tokens.refreshExpiresIn,
+      authMode: 'token',
+      profile,
+    };
+  }
+
+  async refresh(
+    payload: RefreshDto,
+    request: Request,
+    response: Response,
+  ): Promise<LoginResponseDto> {
+    const clientType = this.getClientType(request);
+    const refreshToken =
+      clientType === AUTH_WEB_CLIENT_TYPE
+        ? this.authTokenService.extractRefreshTokenFromCookie(request)
+        : this.extractMiniRefreshToken(payload.refreshToken);
+
+    const refreshPayload =
+      this.authTokenService.verifyRefreshToken(refreshToken);
+    const session = await this.authSessionService.getRefreshSession(
+      refreshPayload.sid,
+    );
+
+    if (
+      !session ||
+      session.userId !== refreshPayload.sub ||
+      session.clientType !== clientType ||
+      session.currentRefreshTokenId !== refreshPayload.jti
+    ) {
+      throw new UnauthorizedException('Refresh session expired');
+    }
+
+    const user = await this.authRepository.findUserById(refreshPayload.sub);
+
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    const tokens = this.authTokenService.issueTokens(
+      user,
+      clientType,
+      refreshPayload.sid,
+    );
+
+    await this.authSessionService.storeRefreshSession({
+      sessionId: tokens.sessionId,
+      userId: user.userId,
+      username: user.username,
+      clientType,
+      currentRefreshTokenId: tokens.refreshTokenId,
+      expiresAt: Math.floor(Date.now() / 1000) + tokens.refreshExpiresIn,
+    });
+
+    const profile = this.authRepository.toProfile(user);
+
+    if (clientType === AUTH_WEB_CLIENT_TYPE) {
+      this.writeWebCookies(response, tokens.accessToken, tokens.refreshToken);
+
+      return {
+        expiresIn: tokens.accessExpiresIn,
+        refreshExpiresIn: tokens.refreshExpiresIn,
+        authMode: 'cookie',
+        profile,
+      };
+    }
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: tokens.accessExpiresIn,
+      refreshExpiresIn: tokens.refreshExpiresIn,
+      authMode: 'token',
+      profile,
+    };
+  }
+
+  async logout(
+    payload: LogoutDto,
+    request: Request,
+    response: Response,
+  ): Promise<{ success: true }> {
+    const clientType = this.getClientType(request);
+
+    if (clientType === AUTH_WEB_CLIENT_TYPE) {
+      const refreshToken = this.tryExtractWebRefreshToken(request);
+
+      if (refreshToken) {
+        await this.revokeRefreshSession(refreshToken);
+      }
+
+      this.clearWebCookies(response);
+      return { success: true };
+    }
+
+    if (payload.refreshToken) {
+      await this.revokeRefreshSession(payload.refreshToken);
+    }
+
+    return { success: true };
+  }
+
+  async devRegister(
+    payload: DevRegisterDto,
+    request: Request,
+  ): Promise<{ registered: true; profile: AuthProfile }> {
+    const secret = request.headers[AUTH_DEV_REGISTER_SECRET_HEADER];
+    const providedSecret =
+      typeof secret === 'string'
+        ? secret.trim()
+        : Array.isArray(secret)
+          ? secret[0]?.trim()
+          : '';
+
+    if (
+      !providedSecret ||
+      providedSecret !== process.env.AUTH_DEV_REGISTER_SECRET
+    ) {
+      throw new UnauthorizedException(
+        'Invalid development registration secret',
+      );
+    }
+
+    const user = await this.authRepository.registerDevUser({
+      username: payload.username.trim(),
+      passwordHash: this.authPasswordService.hashPassword(
+        payload.password.trim(),
+      ),
+      nickname: payload.nickname?.trim(),
+      email: payload.email?.trim(),
     });
 
     return {
-      accessToken,
-      tokenType: 'Bearer',
-      expiresIn: ACCESS_TOKEN_TTL_SECONDS,
-      authMode: clientType === 'web' ? 'cookie' : 'token',
+      registered: true,
       profile: this.authRepository.toProfile(user),
     };
   }
 
-  getProfile(request: Request) {
-    const token = this.extractBearerToken(request);
-    const payload = this.verifyAccessToken(token);
-    const user = this.authRepository.findUserById(payload.sub);
+  async getProfile(request: AuthenticatedRequest) {
+    const authContext = request.authContext;
 
-    if (!user) {
+    if (!authContext) {
+      throw new UnauthorizedException('Missing auth context');
+    }
+
+    const user = await this.authRepository.findUserById(authContext.userId);
+
+    if (!user || user.status !== 'active') {
       throw new UnauthorizedException('User not found or inactive');
     }
 
     return this.authRepository.toProfile(user);
   }
 
-  logout(): { success: true } {
-    return {
-      success: true,
-    };
-  }
-
-  private extractBearerToken(request: Request): string {
-    const cookieToken = this.extractCookieToken(request);
-    if (cookieToken) {
-      return cookieToken;
-    }
-
-    const authorization = request.headers.authorization;
-
-    if (!authorization?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing auth token');
-    }
-
-    const token = authorization.slice('Bearer '.length).trim();
-
-    if (!token) {
-      throw new UnauthorizedException('Missing auth token');
-    }
-
-    return token;
-  }
-
-  private extractCookieToken(request: Request): string | undefined {
-    const cookieHeader = request.headers.cookie;
-    if (!cookieHeader) {
-      return undefined;
-    }
-
-    const cookies = cookieHeader.split(';').map((item) => item.trim());
-    const target = cookies.find((item) =>
-      item.startsWith(`${SESSION_COOKIE_NAME}=`),
+  loginWechatMini(payload: WechatMiniLoginDto): never {
+    void payload;
+    throw new NotImplementedException(
+      'Wechat mini-program phone login is reserved in auth2, but platform integration is not connected yet.',
     );
-
-    if (!target) {
-      return undefined;
-    }
-
-    return decodeURIComponent(target.slice(`${SESSION_COOKIE_NAME}=`.length));
   }
 
-  private signAccessToken(
-    payload: Pick<JwtAccessPayload, 'sub' | 'username' | 'roles'>,
-  ): string {
-    const issuedAt = Math.floor(Date.now() / 1000);
-    const fullPayload: JwtAccessPayload = {
-      ...payload,
-      iat: issuedAt,
-      exp: issuedAt + ACCESS_TOKEN_TTL_SECONDS,
-      iss: JWT_ISSUER,
-      aud: JWT_AUDIENCE,
-      type: 'access',
-    };
-
-    const headerSegment = this.encodeBase64Url({
-      alg: 'HS256',
-      typ: 'JWT',
-    });
-    const payloadSegment = this.encodeBase64Url(fullPayload);
-    const signatureSegment = this.signSignature(
-      `${headerSegment}.${payloadSegment}`,
-    );
-
-    return `${headerSegment}.${payloadSegment}.${signatureSegment}`;
+  getPublicRouteWhitelist(): string[] {
+    return [
+      'GET /',
+      'POST /v1/auth/login',
+      'POST /v1/auth/refresh',
+      'POST /v1/auth/logout',
+      'POST /v1/auth/dev-register',
+      'POST /v1/auth/wechat-mini/login',
+    ];
   }
 
-  private verifyAccessToken(token: string): JwtAccessPayload {
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      throw new UnauthorizedException('Invalid token format');
-    }
-
-    const [headerSegment, payloadSegment, signatureSegment] = parts;
-    const expectedSignature = this.signSignature(
-      `${headerSegment}.${payloadSegment}`,
+  private writeWebCookies(
+    response: Response,
+    accessToken: string,
+    refreshToken: string,
+  ): void {
+    response.cookie(
+      this.authTokenService.getAccessCookieName(),
+      accessToken,
+      this.authTokenService.buildCookieOptions(
+        this.authTokenService.getAccessTokenTtlSeconds() * 1000,
+      ),
     );
+    response.cookie(
+      this.authTokenService.getRefreshCookieName(),
+      refreshToken,
+      this.authTokenService.buildCookieOptions(
+        this.authTokenService.getRefreshTokenTtlSeconds() * 1000,
+      ),
+    );
+  }
 
-    if (!this.safeEqual(signatureSegment, expectedSignature)) {
-      throw new UnauthorizedException('Invalid token signature');
+  private clearWebCookies(response: Response): void {
+    const options = this.authTokenService.buildClearCookieOptions();
+
+    response.clearCookie(this.authTokenService.getAccessCookieName(), options);
+    response.clearCookie(this.authTokenService.getRefreshCookieName(), options);
+  }
+
+  private extractMiniRefreshToken(refreshToken?: string): string {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
     }
 
-    const payload = this.decodeBase64Url<JwtAccessPayload>(payloadSegment);
+    return refreshToken.trim();
+  }
+
+  private tryExtractWebRefreshToken(request: Request): string | null {
+    try {
+      return this.authTokenService.extractRefreshTokenFromCookie(request);
+    } catch {
+      return null;
+    }
+  }
+
+  private async revokeRefreshSession(refreshToken: string): Promise<void> {
+    try {
+      const payload = this.authTokenService.verifyRefreshToken(refreshToken);
+      await this.authSessionService.clearRefreshSession(payload.sid);
+    } catch {
+      return;
+    }
+  }
+
+  private getClientType(request: Request): AuthClientType {
+    const rawValue = request.headers[AUTH_CLIENT_TYPE_HEADER];
+    const clientType =
+      typeof rawValue === 'string'
+        ? rawValue.trim()
+        : Array.isArray(rawValue)
+          ? rawValue[0]?.trim()
+          : AUTH_WEB_CLIENT_TYPE;
+
+    if (!clientType) {
+      return AUTH_WEB_CLIENT_TYPE;
+    }
 
     if (
-      payload.type !== 'access' ||
-      payload.iss !== JWT_ISSUER ||
-      payload.aud !== JWT_AUDIENCE
+      SUPPORTED_AUTH_CLIENT_TYPES.includes(
+        clientType as (typeof SUPPORTED_AUTH_CLIENT_TYPES)[number],
+      )
     ) {
-      throw new UnauthorizedException('Invalid token claims');
+      return clientType as AuthClientType;
     }
 
-    const now = Math.floor(Date.now() / 1000);
-    if (payload.exp <= now) {
-      throw new UnauthorizedException('Token expired');
-    }
-
-    return payload;
-  }
-
-  private encodeBase64Url(value: unknown): string {
-    return Buffer.from(JSON.stringify(value)).toString('base64url');
-  }
-
-  private decodeBase64Url<T>(value: string): T {
-    return JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as T;
-  }
-
-  private signSignature(content: string): string {
-    return createHmac('sha256', JWT_SECRET)
-      .update(content)
-      .digest('base64url');
-  }
-
-  private safeEqual(left: string, right: string): boolean {
-    const leftBuffer = Buffer.from(left);
-    const rightBuffer = Buffer.from(right);
-
-    if (leftBuffer.length !== rightBuffer.length) {
-      return false;
-    }
-
-    return timingSafeEqual(leftBuffer, rightBuffer);
+    throw new BadRequestException(
+      `Unsupported ${AUTH_CLIENT_TYPE_HEADER} header`,
+    );
   }
 }

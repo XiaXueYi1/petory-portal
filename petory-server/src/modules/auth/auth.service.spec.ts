@@ -1,48 +1,51 @@
-import { UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthRepository } from './repository/auth.repository';
+import { ConfigService } from '@nestjs/config';
+import { AuthPasswordService } from './auth-password.service';
+import { AuthTokenService } from './auth-token.service';
 
-describe('AuthService', () => {
-  let authService: AuthService;
-
-  beforeEach(() => {
-    authService = new AuthService(new AuthRepository());
+describe('Auth auth2 helpers', () => {
+  const configService = new ConfigService({
+    AUTH_PASSWORD_PEPPER: 'test-pepper',
+    AUTH_TOKEN_ISSUER: 'petory-server',
+    AUTH_TOKEN_AUDIENCE: 'petory-portal',
+    AUTH_ACCESS_TOKEN_SECRET: 'access-secret',
+    AUTH_REFRESH_TOKEN_SECRET: 'refresh-secret',
+    AUTH_ACCESS_TOKEN_TTL_SECONDS: '900',
+    AUTH_REFRESH_TOKEN_TTL_SECONDS: '604800',
+    AUTH_REFRESH_SESSION_PREFIX: 'petory:auth:refresh',
+    AUTH_WEB_ACCESS_COOKIE_NAME: 'pt_access_token',
+    AUTH_WEB_REFRESH_COOKIE_NAME: 'pt_refresh_token',
+    AUTH_COOKIE_SECURE: 'false',
+    AUTH_COOKIE_SAME_SITE: 'lax',
   });
 
-  it('should login with the local admin credentials', () => {
-    const result = authService.login({
-      username: 'admin',
-      password: '123456',
-    });
+  it('hashes and verifies passwords', () => {
+    const passwordService = new AuthPasswordService(configService);
+    const hashedPassword = passwordService.hashPassword('123456');
 
-    expect(result.tokenType).toBe('Bearer');
-    expect(result.accessToken).toBeTruthy();
-    expect(result.profile.user.username).toBe('admin');
-    expect(result.profile.roles).toEqual(['admin']);
+    expect(passwordService.verifyPassword('123456', hashedPassword)).toBe(true);
+    expect(passwordService.verifyPassword('654321', hashedPassword)).toBe(
+      false,
+    );
   });
 
-  it('should reject invalid credentials', () => {
-    expect(() =>
-      authService.login({
+  it('issues and verifies access and refresh tokens', () => {
+    const tokenService = new AuthTokenService(configService);
+    const tokens = tokenService.issueTokens(
+      {
+        userId: 'user-admin-local',
         username: 'admin',
-        password: 'wrong-password',
-      }),
-    ).toThrow(UnauthorizedException);
-  });
-
-  it('should resolve profile from bearer token', () => {
-    const result = authService.login({
-      username: 'admin',
-      password: '123456',
-    });
-
-    const profile = authService.getProfile({
-      headers: {
-        authorization: `Bearer ${result.accessToken}`,
       },
-    } as never);
+      'web',
+      'session-1',
+    );
 
-    expect(profile.user.username).toBe('admin');
-    expect(profile.permissions).toContain('auth:profile');
+    const accessPayload = tokenService.verifyAccessToken(tokens.accessToken);
+    const refreshPayload = tokenService.verifyRefreshToken(tokens.refreshToken);
+
+    expect(accessPayload.sub).toBe('user-admin-local');
+    expect(accessPayload.sid).toBe('session-1');
+    expect(refreshPayload.sub).toBe('user-admin-local');
+    expect(refreshPayload.sid).toBe('session-1');
+    expect(refreshPayload.jti).toBe(tokens.refreshTokenId);
   });
-}
+});
