@@ -1,0 +1,8 @@
+export const DEFAULT_SUCCESS_CODE = 0;
+export const DEFAULT_SUCCESS_MESSAGE = 'OK';
+
+export const HTTP_ERROR_CODE = {
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;
