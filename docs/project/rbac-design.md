@@ -382,6 +382,16 @@ resource:action
 - `admin` 不天然等于业务医生
 - 是否拥有全部宠物业务写权限需单独定义，不能默认继承
 
+本地开发默认超级管理员约定：
+
+- 用户名：`admin`
+- 密码：`123456`
+
+说明：
+
+- 以上仅作为当前本地开发阶段的默认超级管理员账号
+- 正式环境不得沿用该默认凭据
+
 ---
 
 ## 9. 菜单设计
@@ -768,6 +778,11 @@ updateConfig() {}
 - `POST /auth/logout`
 - `GET /auth/profile`
 - `POST /auth/wechat-mini/login`
+
+本地开发阶段默认超级管理员登录凭据：
+
+- username: `admin`
+- password: `123456`
 
 ### 16.2 角色权限菜单接口
 
