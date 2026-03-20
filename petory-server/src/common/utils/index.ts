@@ -1,1 +1,1 @@
-export * from './is-empty.util';
+export * from '@/common/utils/is-empty.util';

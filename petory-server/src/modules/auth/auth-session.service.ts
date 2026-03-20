@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../../infra/cache';
-import type { RefreshSessionRecord } from './auth.types';
-import { AuthTokenService } from './auth-token.service';
+import { RedisService } from '@/infra/cache';
+import type { RefreshSessionRecord } from '@/modules/auth/auth.types';
+import { AuthTokenService } from '@/modules/auth/auth-token.service';
 
 @Injectable()
 export class AuthSessionService {

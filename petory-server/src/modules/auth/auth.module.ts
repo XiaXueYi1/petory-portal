@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthPasswordService } from './auth-password.service';
-import { AuthSessionService } from './auth-session.service';
-import { AuthTokenService } from './auth-token.service';
-import { AuthService } from './auth.service';
-import { AuthRepository } from './repository/auth.repository';
+import { AuthController } from '@/modules/auth/auth.controller';
+import { AuthPasswordService } from '@/modules/auth/auth-password.service';
+import { AuthSessionService } from '@/modules/auth/auth-session.service';
+import { AuthTokenService } from '@/modules/auth/auth-token.service';
+import { AuthService } from '@/modules/auth/auth.service';
+import { AuthRepository } from '@/modules/auth/repository/auth.repository';
+import { WechatMiniAuthService } from '@/modules/auth/wechat-mini-auth.service';
 
 @Module({
   controllers: [AuthController],
@@ -13,6 +14,7 @@ import { AuthRepository } from './repository/auth.repository';
     AuthSessionService,
     AuthTokenService,
     AuthService,
+    WechatMiniAuthService,
     AuthRepository,
   ],
   exports: [AuthService, AuthTokenService],

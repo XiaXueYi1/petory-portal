@@ -1,1 +1,1 @@
-export * from './env';
+export * from '@/infra/config/env';

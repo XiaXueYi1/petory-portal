@@ -8,7 +8,7 @@ import type {
   AuthSubjectRecord,
   IssuedTokens,
   RefreshTokenPayload,
-} from './auth.types';
+} from '@/modules/auth/auth.types';
 
 @Injectable()
 export class AuthTokenService {

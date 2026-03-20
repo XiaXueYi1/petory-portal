@@ -11,7 +11,7 @@ import {
   DEFAULT_SUCCESS_CODE,
   DEFAULT_SUCCESS_MESSAGE,
   HTTP_ERROR_CODE,
-} from '../constants';
+} from '@/common/constants';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

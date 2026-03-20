@@ -8,16 +8,16 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { Public } from '../../common';
+import { Public } from '@/common';
 import {
   DevRegisterDto,
   LoginDto,
   LogoutDto,
   RefreshDto,
   WechatMiniLoginDto,
-} from './dto';
-import { AuthService } from './auth.service';
-import type { AuthenticatedRequest } from './auth.types';
+} from '@/modules/auth/dto';
+import { AuthService } from '@/modules/auth/auth.service';
+import type { AuthenticatedRequest } from '@/modules/auth/auth.types';
 
 @Controller('auth')
 export class AuthController {
@@ -72,8 +72,11 @@ export class AuthController {
   @Public()
   @Post('wechat-mini/login')
   @HttpCode(200)
-  loginWechatMini(@Body() payload: WechatMiniLoginDto) {
-    return this.authService.loginWechatMini(payload);
+  loginWechatMini(
+    @Body() payload: WechatMiniLoginDto,
+    @Req() request: Request,
+  ) {
+    return this.authService.loginWechatMini(payload, request);
   }
 
   @Get('profile')

@@ -1,1 +1,1 @@
-export * from './normalize-string.pipe';
+export * from '@/common/pipes/normalize-string.pipe';
