@@ -1,4 +1,6 @@
-export const APP_NAME = 'Petory Portal'
+import { env } from '@/shared/config/env'
+
+export const APP_NAME = env.appTitle
 
 export const FOUNDATION_STACK = [
   'React + Vite + TypeScript',

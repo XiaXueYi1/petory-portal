@@ -39,8 +39,9 @@ export function DashboardPage() {
             <Typography.Paragraph
               style={{ margin: 0, color: 'var(--app-muted)' }}
             >
-              这里是临时首页占位，用来验证 Web 登录闭环已经跑通。后续业务首页、
-              菜单树和动态路由会在下一轮继续补齐。
+              This is still a temporary home screen. It verifies the auth2 cookie
+              flow, profile bootstrap, and basic sign-out path before the real
+              dashboard, menu tree, and dynamic routes land in later work.
             </Typography.Paragraph>
           </div>
 
