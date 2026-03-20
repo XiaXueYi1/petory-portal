@@ -1,22 +1,33 @@
-﻿import type { AuthProfile, LoginPayload } from './types'
-import { request } from '@/shared/lib/request'
+import type { AuthProfile, LoginPayload, LoginResult } from './types'
+import { http } from '@/shared/lib/request'
 
 export function login(payload: LoginPayload) {
-  return request<unknown>('/auth/login', {
-    method: 'POST',
-    body: payload,
+  return http.post<LoginResult>({
+    url: '/auth/login',
+    payload,
   })
 }
 
 export function getProfile(signal?: AbortSignal) {
-  return request<AuthProfile>('/auth/profile', {
-    method: 'GET',
-    signal,
+  return http.get<AuthProfile>({
+    url: '/auth/profile',
+    options: {
+      signal,
+    },
   })
 }
 
 export function logout() {
-  return request<null>('/auth/logout', {
-    method: 'POST',
+  return http.post<null>({
+    url: '/auth/logout',
+  })
+}
+
+export function refreshSession() {
+  return http.post<null>({
+    url: '/auth/refresh',
+    options: {
+      skipAuthRefresh: true,
+    },
   })
 }

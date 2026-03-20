@@ -1,10 +1,11 @@
-﻿import type { FormProps } from 'antd'
+import type { FormProps } from 'antd'
 import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getProfile, login } from '@/features/auth/api'
 import type { AuthProfile, LoginPayload } from '@/features/auth/api'
 import { useAuthStore } from '@/app/store/auth.store'
+import { env } from '@/shared/config/env'
 import { APP_NAME } from '@/shared/constants/app'
 import { ApiError } from '@/shared/lib/request'
 
@@ -47,7 +48,7 @@ export function LoginPage() {
     loginMutation.error instanceof ApiError
       ? loginMutation.error.message
       : loginMutation.isError
-        ? '登录失败，请稍后重试。'
+        ? 'Login failed. Please try again later.'
         : null
 
   const handleSubmit: FormProps<LoginPayload>['onFinish'] = (values) => {
@@ -84,13 +85,14 @@ export function LoginPage() {
                 maxWidth: 620,
               }}
             >
-              使用最小登录闭环先把 Web 与 auth 基线连通。界面保持简洁，
-              重点验证账号、错误提示、登录成功跳转和 profile 初始化流程。
+              Auth2 now uses dual cookies for access and refresh. This screen
+              focuses on the minimal login flow, profile bootstrap, silent refresh,
+              and redirect after sign-in.
             </Typography.Paragraph>
             <div className="grid gap-3 sm:grid-cols-3">
-              <InfoBlock label="默认账号" value="admin" />
-              <InfoBlock label="默认密码" value="123456" />
-              <InfoBlock label="接口前缀" value="/v1" />
+              <InfoBlock label="Default User" value="admin" />
+              <InfoBlock label="Cookie Mode" value="access + refresh" />
+              <InfoBlock label="API Base" value={env.apiBaseUrl} />
             </div>
           </Space>
         </section>
@@ -102,14 +104,22 @@ export function LoginPage() {
           <Space direction="vertical" size={18} className="w-full">
             <div>
               <Typography.Title level={3} style={{ marginBottom: 8 }}>
-                登录后台
+                Sign In
               </Typography.Title>
               <Typography.Paragraph
                 style={{ margin: 0, color: 'var(--app-muted)' }}
               >
-                当前只接管理员登录，后续再补完整权限导航与业务首页。
+                This round keeps the UI minimal. Web does not persist any bearer
+                token and relies on server-set cookies plus profile bootstrap.
               </Typography.Paragraph>
             </div>
+
+            <Alert
+              type="info"
+              showIcon
+              message="Local admin account: admin / 123456"
+              description="The server writes cookies after login, then the app hydrates auth state through /auth/profile."
+            />
 
             {errorMessage ? <Alert type="error" showIcon message={errorMessage} /> : null}
 
@@ -120,19 +130,19 @@ export function LoginPage() {
               autoComplete="off"
             >
               <Form.Item
-                label="用户名"
+                label="Username"
                 name="username"
-                rules={[{ required: true, message: '请输入用户名' }]}
+                rules={[{ required: true, message: 'Please enter your username.' }]}
               >
-                <Input size="large" placeholder="请输入用户名" />
+                <Input size="large" placeholder="Enter your username" />
               </Form.Item>
 
               <Form.Item
-                label="密码"
+                label="Password"
                 name="password"
-                rules={[{ required: true, message: '请输入密码' }]}
+                rules={[{ required: true, message: 'Please enter your password.' }]}
               >
-                <Input.Password size="large" placeholder="请输入密码" />
+                <Input.Password size="large" placeholder="Enter your password" />
               </Form.Item>
 
               <Button
@@ -142,7 +152,7 @@ export function LoginPage() {
                 block
                 loading={loginMutation.isPending}
               >
-                登录
+                Sign In
               </Button>
             </Form>
           </Space>

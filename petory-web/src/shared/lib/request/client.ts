@@ -1,4 +1,33 @@
-﻿export class ApiError extends Error {
+import axios, { AxiosError } from 'axios'
+import type {
+  AxiosHeaders,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+  Method,
+} from 'axios'
+import { env } from '@/shared/config/env'
+import type {
+  ApiEnvelope,
+  HttpMutationInput,
+  HttpQueryInput,
+  HttpRequestOptions,
+} from '@/shared/lib/request/types'
+
+type RetriableRequestConfig = InternalAxiosRequestConfig & {
+  _retry?: boolean
+  skipAuthRefresh?: boolean
+}
+
+type InternalRequestInput<TPayload = unknown> = {
+  method: Method
+  url: string
+  payload?: TPayload
+  options?: HttpRequestOptions
+}
+
+export class ApiError extends Error {
   status: number
   code: number | string | null
   payload: unknown
@@ -19,89 +48,233 @@
   }
 }
 
-type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
-  body?: unknown
-  signal?: AbortSignal
-}
+export class HttpClient {
+  private readonly client: AxiosInstance
+  private readonly refreshClient: AxiosInstance
+  private refreshPromise: Promise<void> | null = null
 
-const API_BASE_URL = '/v1'
+  constructor(config?: {
+    baseURL?: string
+    timeout?: number
+  }) {
+    this.client = this.createInstance(config)
+    this.refreshClient = this.createInstance(config)
+    this.attachRequestInterceptors(this.client)
+    this.attachRequestInterceptors(this.refreshClient)
 
-export async function request<T>(
-  path: string,
-  options: RequestOptions = {},
-): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: options.method ?? 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-    signal: options.signal,
-  })
+    this.client.interceptors.response.use(
+      (response) => this.unwrapResponse(response),
+      async (error: AxiosError) => this.handleError(error),
+    )
+  }
 
-  const payload = await parsePayload(response)
-
-  if (!response.ok) {
-    throw new ApiError(resolveErrorMessage(payload), {
-      status: response.status,
-      code: resolveErrorCode(payload),
-      payload,
+  get<T>({ url, options }: HttpQueryInput): Promise<T> {
+    return this.request<T>({
+      method: 'GET',
+      url,
+      options,
     })
   }
 
-  return unwrapResponse<T>(payload)
+  post<T, TPayload = unknown>({
+    url,
+    payload,
+    options,
+  }: HttpMutationInput<TPayload>): Promise<T> {
+    return this.request<T, TPayload>({
+      method: 'POST',
+      url,
+      payload,
+      options,
+    })
+  }
+
+  put<T, TPayload = unknown>({
+    url,
+    payload,
+    options,
+  }: HttpMutationInput<TPayload>): Promise<T> {
+    return this.request<T, TPayload>({
+      method: 'PUT',
+      url,
+      payload,
+      options,
+    })
+  }
+
+  patch<T, TPayload = unknown>({
+    url,
+    payload,
+    options,
+  }: HttpMutationInput<TPayload>): Promise<T> {
+    return this.request<T, TPayload>({
+      method: 'PATCH',
+      url,
+      payload,
+      options,
+    })
+  }
+
+  delete<T, TPayload = unknown>({
+    url,
+    payload,
+    options,
+  }: HttpMutationInput<TPayload>): Promise<T> {
+    return this.request<T, TPayload>({
+      method: 'DELETE',
+      url,
+      payload,
+      options,
+    })
+  }
+
+  createAbortController() {
+    return new AbortController()
+  }
+
+  isAbortError(error: unknown): boolean {
+    return axios.isCancel(error)
+  }
+
+  private request<T, TPayload = unknown>({
+    method,
+    url,
+    payload,
+    options,
+  }: InternalRequestInput<TPayload>): Promise<T> {
+    return this.client.request<T, T>({
+      method,
+      url,
+      data: payload,
+      ...options,
+    })
+  }
+
+  private attachRequestInterceptors(instance: AxiosInstance) {
+    instance.interceptors.request.use((requestConfig) => {
+      const headers = axios.AxiosHeaders.from(
+        requestConfig.headers,
+      ) as AxiosHeaders
+      if (!headers.has('x-client-type')) {
+        headers.set('x-client-type', 'web')
+      }
+      requestConfig.headers = headers
+      return requestConfig
+    })
+  }
+
+  private createInstance(config?: {
+    baseURL?: string
+    timeout?: number
+  }) {
+    return axios.create({
+      baseURL: config?.baseURL ?? env.apiBaseUrl,
+      timeout: config?.timeout ?? env.requestTimeout,
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  }
+
+  private unwrapResponse<T>(response: AxiosResponse<T | ApiEnvelope<T>>): T {
+    const payload = response.data
+
+    if (isApiEnvelope<T>(payload)) {
+      return payload.data as T
+    }
+
+    return payload as T
+  }
+
+  private async handleError(error: AxiosError): Promise<never> {
+    const requestConfig = error.config as RetriableRequestConfig | undefined
+
+    if (this.shouldRefresh(error, requestConfig)) {
+      await this.refreshAccessToken()
+      requestConfig._retry = true
+      return this.client.request(requestConfig)
+    }
+
+    throw this.toApiError(error)
+  }
+
+  private shouldRefresh(
+    error: AxiosError,
+    config?: RetriableRequestConfig,
+  ): config is RetriableRequestConfig {
+    if (!env.authRefreshEnabled || !config || config._retry) {
+      return false
+    }
+
+    if (config.skipAuthRefresh) {
+      return false
+    }
+
+    const status = error.response?.status
+    const url = config.url ?? ''
+
+    if (status !== 401) {
+      return false
+    }
+
+    return (
+      !url.includes(env.authRefreshPath) &&
+      !url.includes('/auth/login') &&
+      !url.includes('/auth/logout')
+    )
+  }
+
+  private async refreshAccessToken(): Promise<void> {
+    if (!this.refreshPromise) {
+      this.refreshPromise = this.refreshClient
+        .post(env.authRefreshPath, undefined, {
+          skipAuthRefresh: true,
+        } as AxiosRequestConfig)
+        .then(() => undefined)
+        .finally(() => {
+          this.refreshPromise = null
+        })
+    }
+
+    return this.refreshPromise
+  }
+
+  private toApiError(error: AxiosError): ApiError {
+    const status = error.response?.status ?? 500
+    const payload = error.response?.data
+
+    if (axios.isCancel(error)) {
+      return new ApiError('Request was canceled.', {
+        status: 499,
+        payload,
+      })
+    }
+
+    if (isApiEnvelope(payload) && typeof payload.message === 'string') {
+      return new ApiError(payload.message, {
+        status,
+        code: payload.code ?? null,
+        payload,
+      })
+    }
+
+    if (typeof payload === 'string' && payload.trim()) {
+      return new ApiError(payload, {
+        status,
+        payload,
+      })
+    }
+
+    return new ApiError('Request failed. Please try again later.', {
+      status,
+      payload,
+    })
+  }
 }
 
-async function parsePayload(response: Response): Promise<unknown> {
-  const contentType = response.headers.get('content-type') ?? ''
+export const http = new HttpClient()
 
-  if (contentType.includes('application/json')) {
-    return response.json()
-  }
-
-  if (contentType.includes('text/')) {
-    return response.text()
-  }
-
-  return null
-}
-
-function unwrapResponse<T>(payload: unknown): T {
-  if (isApiEnvelope(payload)) {
-    return payload.data as T
-  }
-
-  return payload as T
-}
-
-function resolveErrorMessage(payload: unknown): string {
-  if (isApiEnvelope(payload) && typeof payload.message === 'string') {
-    return payload.message
-  }
-
-  if (typeof payload === 'string' && payload.trim()) {
-    return payload
-  }
-
-  return '请求失败，请稍后重试。'
-}
-
-function resolveErrorCode(payload: unknown): number | string | null {
-  if (isApiEnvelope(payload)) {
-    return payload.code ?? null
-  }
-
-  return null
-}
-
-function isApiEnvelope(
-  payload: unknown,
-): payload is {
-  code?: number | string
-  message?: string
-  data?: unknown
-} {
-  return typeof payload === 'object' && payload !== null
+function isApiEnvelope<T = unknown>(payload: unknown): payload is ApiEnvelope<T> {
+  return typeof payload === 'object' && payload !== null && 'data' in payload
 }

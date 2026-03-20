@@ -1,6 +1,11 @@
-﻿export type LoginPayload = {
+export type LoginPayload = {
   username: string
   password: string
+}
+
+export type LoginResult = {
+  authMode?: 'cookie' | 'token'
+  expiresIn?: number
 }
 
 export type AuthUser = {
