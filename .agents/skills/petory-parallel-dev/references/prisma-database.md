@@ -1,4 +1,4 @@
-# Prisma 与数据库约束
+﻿# Prisma 与数据库约束
 
 ## 基础规则
 
@@ -17,6 +17,34 @@
 - 以 `petory-server/` 为真实落地点
 - 文档从规划稿升级为“规划 + 已实现”
 - 接口契约同步回写 `docs/features/server/<feature>/`
+
+## Prisma schema 组织规则
+
+- 主 `schema.prisma`：仅存放 `datasource`、`generator` 配置，以及所有公共 `enum`
+- 各模块目录：按业务领域拆分，每个模块一个 `.prisma` 文件，只存放该模块的 `model`
+- 跨文件引用：无需 `import`，Prisma 自动合并；公共 `enum` 在任意模块文件中可直接使用
+
+推荐结构：
+
+```text
+petory-server/
+└── prisma/
+    ├── schema.prisma
+    └── schemas/
+        ├── auth.prisma
+        ├── rbac.prisma
+        ├── pets.prisma
+        ├── records.prisma
+        ├── llm.prisma
+        └── system-config.prisma
+```
+
+补充规则：
+
+- 不把所有 `model` 堆在主 `schema.prisma`
+- 不为 Prisma 文件写自定义 `import`
+- 公共 `enum` 统一维护在主 `schema.prisma`
+- 单个模块文件避免跨领域混放模型
 
 ## 查询规范
 
@@ -43,3 +71,4 @@
 - 不分页直接查全表
 - Controller 直接拼复杂查询
 - 把数据库约束问题完全留给下游兜底
+- 在 Prisma 文件之间手写 import 依赖

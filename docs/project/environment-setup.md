@@ -141,10 +141,21 @@ pnpm run build:weapp
 因此，下面的环境变量只能视为规划示例，不能视为当前可直接运行的既定配置：
 
 ```env
-DATABASE_URL="postgresql://postgres:123456@localhost:5432/petory?schema=public"
+DATABASE_URL="postgresql://postgres:123456@localhost:5432/postgres?schema=public"
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 ```
+
+当前本地开发数据库基线：
+
+- JDBC URL：`jdbc:postgresql://localhost:5432/postgres`
+- Schema：`public`
+- Username：`postgres`
+- Password：`123456`
+
+说明：
+- 以上连接信息仅用于当前本地开发环境记录
+- 正式环境连接参数后续应通过独立环境变量管理
 
 ---
 

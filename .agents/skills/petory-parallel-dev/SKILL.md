@@ -1,4 +1,4 @@
----
+﻿---
 name: petory-parallel-dev
 description: Repository-specific development workflow and implementation constraints for Petory Portal. Use when working in this repository on feature development, three-thread git worktree coordination, task splitting, file placement, backend or frontend architecture decisions, Prisma/database design, coding conventions, performance choices, or when generating kickoff and handoff instructions that must follow the project's server/web/miniprogram workflow.
 ---
@@ -37,6 +37,9 @@ This skill consolidates the legacy `.agents/skills/*.md` guides and the reposito
 - Do not generate monorepo paths like `apps/web`, `apps/server`, or `packages/*`
 - Use `docs/features/min-program/`, not `docs/features/miniprogram/`
 - Treat design documents as planning unless code has actually landed
+- When Prisma is introduced, use one main `petory-server/prisma/schema.prisma` file only for `datasource`, `generator`, and shared enums
+- Put Prisma models in per-domain `.prisma` files under the Prisma schema directory; one module file should only contain that domain's models
+- Do not add custom imports between Prisma files; Prisma file merging is automatic and shared enums must remain usable across module files
 
 ## Use this skill for these decisions
 
