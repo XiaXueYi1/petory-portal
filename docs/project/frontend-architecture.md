@@ -396,7 +396,7 @@ features/pets/
 - 不允许大量零散内联 style
 - 不允许同类页面出现多种不一致交互模式
 
-主题系统专题设计见 `docs/project/theme-design.md`。
+主题系统专题设计见 [web-theme-design.md](/e:/projects/petory-portal/docs/project/web-theme-design.md)。
 
 ### 11.3 请求层约束
 

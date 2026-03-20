@@ -128,6 +128,13 @@ pnpm run dev:weapp
 pnpm run build:weapp
 ```
 
+设计与尺寸基线：
+
+- 当前小程序设计稿默认以 `750px` 为主标准
+- 样式尺寸优先写 `px`
+- 由 Taro 编译期负责转换到小程序端单位
+- 只有明确需要跳过转换时才使用 `Px / PX`
+
 ---
 
 ## 5. 当前已确认的环境现状
@@ -187,6 +194,12 @@ REDIS_PORT=6379
 - `petory-web/.env.dev` 已包含 API baseURL、请求超时、refresh 开关与路径等字段
 - `mini-program/.env.dev` 已包含 Bearer Token header、超时、登录策略等字段
 - `.env.prod` 当前主要作为占位，不应视为生产可用配置
+
+Taro 平台与模式补充：
+
+- 当前小程序主题和跨端差异处理统一以 `process.env.TARO_ENV` 为正式入口
+- 不要解构 `process.env`
+- 当前第一目标平台仍是 `weapp`
 
 ---
 

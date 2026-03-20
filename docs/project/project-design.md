@@ -474,7 +474,8 @@ docs/features/
 - 本文档定义整体约束、产品范围与技术规划
 - 权限与认证细节见 `docs/project/rbac-design.md`
 - 前端实现规范见 `docs/project/frontend-architecture.md`
-- Web 主题系统设计见 `docs/project/theme-design.md`
+- Web 主题系统设计见 [web-theme-design.md](/e:/projects/petory-portal/docs/project/web-theme-design.md)
+- 小程序主题系统设计见 [mini-theme-design.md](/e:/projects/petory-portal/docs/project/mini-theme-design.md)
 - 后端实现规范见 `docs/project/backend-architecture.md`
 - 数据库模型见 `docs/project/database-design.md`
 - 环境与本地开发约束见 `docs/project/environment-setup.md`
