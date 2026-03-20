@@ -36,6 +36,7 @@
 - 新增开发专用接口：`POST /v1/auth/dev-register`
 - 新增白名单查询接口：`GET /v1/auth/public-routes`
 - 去掉了仓库内默认管理员 / 默认角色 / 默认权限 / 默认菜单的硬编码初始化
+- `package.json` 已为 `start` / `start:dev` / `start:debug` / `start:prod` 增加 Prisma client 生成前置步骤，避免新环境因 `pnpm install` 跳过构建脚本而启动失败
 
 ## 依赖安装
 
@@ -70,6 +71,7 @@
 - `pnpm exec jest --runInBand`
 - `pnpm exec tsc --noEmit`
 - `pnpm exec node -r ts-node/register -e "...createApplicationContext(AppModule)..."`
+- `pnpm run start:dev`
 
 ## 通过的校验
 
@@ -80,6 +82,7 @@
 - Jest：通过
 - TypeScript `tsc --noEmit`：通过
 - Nest application context 启动烟测：通过（`BOOT_OK`）
+- Nest dev 启动烟测：通过，服务已监听 `3000`
 
 ## 合入 master 后需要执行
 
@@ -104,4 +107,5 @@
 
 - 开发注册接口只适用于开发阶段，不代表正式注册方案
 - 当前角色、权限、菜单不再做仓库内硬编码兜底，返回结果以数据库真实数据为准
+- 新环境如果刚执行过 `pnpm install`，会通过 `prestart*` 自动生成 Prisma client，不再依赖手动补一次 `prisma generate`
 - 微信小程序手机号一键登录本轮只预留了接口骨架，没有宣称已完成真实调用

@@ -21,6 +21,7 @@
 - `ConfigModule` 已接入，服务启动时默认读取：
   - 开发环境：`.env.dev`
   - 生产环境：`.env.prod`
+- `start` / `start:dev` / `start:debug` / `start:prod` 已在启动前自动执行 Prisma client 生成，避免新环境因 `pnpm install` 跳过构建脚本而缺少 `@prisma/client`
 - `main.ts` 已启用全局 `ValidationPipe`
 - 登录 / 刷新 / 注销相关 DTO 已改为 `class-validator / class-transformer` 校验
 - `AuthGuard` 已改为真实鉴权 Guard
@@ -142,5 +143,6 @@
 
 - Redis 必须可用，否则 auth2 启动时的刷新会话能力不可用
 - PostgreSQL 必须可用，否则 Prisma 无法连接
+- 当前 `pnpm install` 会忽略 Prisma 的构建脚本，因此服务端通过 `prestart*` 显式补了一层 `prisma generate`
 - 当前角色、权限、菜单不再做仓库内硬编码兜底
 - Mini 当前更像“Bearer 能力基线 + 微信登录预留”，不是微信正式登录完成版
