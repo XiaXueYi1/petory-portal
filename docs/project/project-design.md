@@ -164,7 +164,7 @@ Mini Program：
 - Taro 4.x
 - React 写法
 - TypeScript
-- `.env.dev / .env.prod` 环境变量基线
+- `.env.development / .env.production` 环境变量基线（遵循 Taro 官方 env mode）
 - class 形态请求层
 - Bearer Token 认证方向
 

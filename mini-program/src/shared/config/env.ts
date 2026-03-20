@@ -5,7 +5,7 @@ const DEFAULTS = {
   authHeaderPrefix: 'Bearer',
   requestTimeout: 10000,
   loginStrategy: 'wechat-phone-first',
-  wechatPhoneLoginStatus: 'design-only'
+  wechatPhoneLoginStatus: 'page-ready'
 } as const
 
 function toNumber(value: string | undefined, fallback: number) {
@@ -15,11 +15,11 @@ function toNumber(value: string | undefined, fallback: number) {
 
 export const miniEnv = {
   appId: process.env.TARO_APP_ID || '',
-  apiBaseUrl: process.env.MINI_API_BASE_URL || DEFAULTS.apiBaseUrl,
-  authTokenKey: process.env.MINI_AUTH_TOKEN_KEY || DEFAULTS.authTokenKey,
-  authHeaderName: process.env.MINI_AUTH_HEADER_NAME || DEFAULTS.authHeaderName,
-  authHeaderPrefix: process.env.MINI_AUTH_HEADER_PREFIX || DEFAULTS.authHeaderPrefix,
-  requestTimeout: toNumber(process.env.MINI_REQUEST_TIMEOUT, DEFAULTS.requestTimeout),
-  loginStrategy: process.env.MINI_LOGIN_STRATEGY || DEFAULTS.loginStrategy,
-  wechatPhoneLoginStatus: process.env.MINI_WECHAT_PHONE_LOGIN_STATUS || DEFAULTS.wechatPhoneLoginStatus
+  apiBaseUrl: process.env.TARO_APP_API_BASE_URL || DEFAULTS.apiBaseUrl,
+  authTokenKey: process.env.TARO_APP_AUTH_TOKEN_KEY || DEFAULTS.authTokenKey,
+  authHeaderName: process.env.TARO_APP_AUTH_HEADER_NAME || DEFAULTS.authHeaderName,
+  authHeaderPrefix: process.env.TARO_APP_AUTH_HEADER_PREFIX || DEFAULTS.authHeaderPrefix,
+  requestTimeout: toNumber(process.env.TARO_APP_REQUEST_TIMEOUT, DEFAULTS.requestTimeout),
+  loginStrategy: process.env.TARO_APP_LOGIN_STRATEGY || DEFAULTS.loginStrategy,
+  wechatPhoneLoginStatus: process.env.TARO_APP_WECHAT_PHONE_LOGIN_STATUS || DEFAULTS.wechatPhoneLoginStatus
 } as const
