@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { ConfigProvider, theme } from 'antd'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { AuthBootstrap } from '@/app/providers/AuthBootstrap'
 import { queryClient } from '@/shared/config/queryClient'
 
 type AppProvidersProps = {
@@ -20,7 +21,9 @@ export function AppProviders({ children }: AppProvidersProps) {
         },
       }}
     >
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthBootstrap>{children}</AuthBootstrap>
+      </QueryClientProvider>
     </ConfigProvider>
   )
 }
