@@ -134,6 +134,7 @@ petory-web/src/
 - Router 初始化
 - Provider 注册
 - QueryClient
+- Theme Provider / Theme 同步
 - 全局样式
 - 启动流程
 
@@ -387,8 +388,11 @@ features/pets/
 
 - 优先使用 Antd 组件承载交互
 - Tailwind 负责布局与轻样式增强
+- 主题 tokens 以应用级主题模块为唯一源头
 - 不允许大量零散内联 style
 - 不允许同类页面出现多种不一致交互模式
+
+主题系统专题设计见 `docs/project/theme-design.md`。
 
 ### 11.3 请求层约束
 
@@ -456,5 +460,6 @@ Web 端边界约束如下：
 3. 文档已整合 `fa.md` 的技术栈与实现规划，但这些规划内容当前不应写成已完成能力。
 4. 前端正式采用 `app / shared / features / pages / layouts` 分层方向。
 5. Zustand 只管理会话态与 UI 态，React Query 管服务端状态。
-6. 动态路由由后端菜单驱动，页面组件由前端 `componentKey` 白名单映射解析。
-7. 新功能应按“类型 -> query -> 页面 -> 权限”闭环补齐。
+6. 主题系统属于应用级能力，推荐落在 `app/theme/`，并与 `AppProviders`、`app/styles/` 配合落地。
+7. 动态路由由后端菜单驱动，页面组件由前端 `componentKey` 白名单映射解析。
+8. 新功能应按“类型 -> query -> 页面 -> 权限”闭环补齐。
