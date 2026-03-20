@@ -1,24 +1,25 @@
 import {
   BadRequestException,
   Injectable,
-  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import {
   AUTH_CLIENT_TYPE_HEADER,
+  AUTH_MINI_PROGRAM_CLIENT_TYPE,
   AUTH_DEV_REGISTER_SECRET_HEADER,
   AUTH_WEB_CLIENT_TYPE,
   SUPPORTED_AUTH_CLIENT_TYPES,
-} from './auth.constants';
-import { AuthPasswordService } from './auth-password.service';
-import { AuthSessionService } from './auth-session.service';
-import { AuthTokenService } from './auth-token.service';
+} from '@/modules/auth/auth.constants';
+import { AuthPasswordService } from '@/modules/auth/auth-password.service';
+import { AuthSessionService } from '@/modules/auth/auth-session.service';
+import { AuthTokenService } from '@/modules/auth/auth-token.service';
+import { WechatMiniAuthService } from '@/modules/auth/wechat-mini-auth.service';
 import type {
   AuthClientType,
   AuthenticatedRequest,
   AuthProfile,
-} from './auth.types';
+} from '@/modules/auth/auth.types';
 import type {
   DevRegisterDto,
   LoginDto,
@@ -26,8 +27,8 @@ import type {
   LogoutDto,
   RefreshDto,
   WechatMiniLoginDto,
-} from './dto';
-import { AuthRepository } from './repository/auth.repository';
+} from '@/modules/auth/dto';
+import { AuthRepository } from '@/modules/auth/repository/auth.repository';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,7 @@ export class AuthService {
     private readonly authPasswordService: AuthPasswordService,
     private readonly authTokenService: AuthTokenService,
     private readonly authSessionService: AuthSessionService,
+    private readonly wechatMiniAuthService: WechatMiniAuthService,
   ) {}
 
   async login(
@@ -241,11 +243,51 @@ export class AuthService {
     return this.authRepository.toProfile(user);
   }
 
-  loginWechatMini(payload: WechatMiniLoginDto): never {
-    void payload;
-    throw new NotImplementedException(
-      'Wechat mini-program phone login is reserved in auth2, but platform integration is not connected yet.',
-    );
+  async loginWechatMini(
+    payload: WechatMiniLoginDto,
+    request: Request,
+  ): Promise<LoginResponseDto> {
+    const clientType = this.getClientType(request);
+
+    if (clientType !== AUTH_MINI_PROGRAM_CLIENT_TYPE) {
+      throw new BadRequestException(
+        'Wechat mini-program phone login only accepts x-client-type: mini-program',
+      );
+    }
+
+    const { openid, phoneNumber } =
+      await this.wechatMiniAuthService.exchangeLoginAndPhoneCode(payload);
+
+    const user = await this.authRepository.upsertWechatMiniPhoneUser({
+      openId: openid,
+      phoneNumber,
+    });
+
+    if (user.status !== 'active') {
+      throw new UnauthorizedException('User not found or inactive');
+    }
+
+    await this.authRepository.markUserLastLogin(user.userId);
+
+    const tokens = this.authTokenService.issueTokens(user, clientType);
+    await this.authSessionService.storeRefreshSession({
+      sessionId: tokens.sessionId,
+      userId: user.userId,
+      username: user.username,
+      clientType,
+      currentRefreshTokenId: tokens.refreshTokenId,
+      expiresAt: Math.floor(Date.now() / 1000) + tokens.refreshExpiresIn,
+    });
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: tokens.accessExpiresIn,
+      refreshExpiresIn: tokens.refreshExpiresIn,
+      authMode: 'token',
+      profile: this.authRepository.toProfile(user),
+    };
   }
 
   getPublicRouteWhitelist(): string[] {

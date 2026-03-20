@@ -1,2 +1,2 @@
-export * from './app.constants';
-export * from './http.constants';
+export * from '@/common/constants/app.constants';
+export * from '@/common/constants/http.constants';

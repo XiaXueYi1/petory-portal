@@ -5,8 +5,11 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { map, Observable } from 'rxjs';
-import { DEFAULT_SUCCESS_CODE, DEFAULT_SUCCESS_MESSAGE } from '../constants';
-import { ApiResponseDto } from '../dto';
+import {
+  DEFAULT_SUCCESS_CODE,
+  DEFAULT_SUCCESS_MESSAGE,
+} from '@/common/constants';
+import { ApiResponseDto } from '@/common/dto';
 
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<

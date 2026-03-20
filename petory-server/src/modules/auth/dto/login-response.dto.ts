@@ -1,4 +1,4 @@
-import type { AuthProfile } from '../auth.types';
+import type { AuthProfile } from '@/modules/auth/auth.types';
 
 export interface LoginResponseDto {
   accessToken?: string;

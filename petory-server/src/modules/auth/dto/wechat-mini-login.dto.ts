@@ -5,4 +5,9 @@ export class WechatMiniLoginDto {
   @IsNotEmpty()
   @Length(1, 512)
   declare code: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(1, 512)
+  declare phoneCode: string;
 }

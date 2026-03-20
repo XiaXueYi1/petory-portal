@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
-import { AuthPasswordService } from './auth-password.service';
-import { AuthTokenService } from './auth-token.service';
+import { AuthPasswordService } from '@/modules/auth/auth-password.service';
+import { AuthTokenService } from '@/modules/auth/auth-token.service';
 
 describe('Auth auth2 helpers', () => {
   const configService = new ConfigService({
