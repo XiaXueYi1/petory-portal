@@ -2,12 +2,12 @@
 
 ## 目标
 
-完成 `petory-web/` 的首轮本地基础搭建，确认 Vite React TypeScript 工程依赖可安装、基础目录骨架存在、常用校验命令可执行。
+完成 `petory-web/` 的首轮本地基础搭建，确认 Vite React TypeScript 工程依赖、`@` 别名、最小入口和目录骨架都已收口。
 
 ## 当前范围
 
 - 仅处理 Web 本地开发基础能力
-- 不接入业务页面、完整路由、状态管理或请求层实现
+- 不接入业务页面、完整业务路由、状态管理流或请求层实现
 - 保持当前可扩展目录骨架：
   - `src/app/`
   - `src/shared/`
@@ -18,6 +18,17 @@
 ## 当前状态
 
 - 工程已使用 `pnpm` 完成依赖安装
+- 已安装并补齐当前基础技术栈依赖：
+  - `react-router-dom`
+  - `zustand`
+  - `@tanstack/react-query`
+  - `antd`
+  - `@ant-design/icons`
+  - `tailwindcss`
+  - `@tailwindcss/vite`
+- `@` 别名已在 Vite 和 TypeScript 配置中生效
+- 最小入口已切换为 `src/app/App.tsx` + `RootLayout`
+- `src/features/` 与 `src/pages/` 已预留最小占位
 - `pnpm run lint` 已通过
 - `pnpm run dev` 待手动启动验证
 - `pnpm run build` 不作为开发阶段默认检查项，按需执行
@@ -29,6 +40,7 @@
 
 ## 已知限制
 
-- 当前仍是 Vite React 默认模板页面，尚未进入业务开发
-- 命令校验依赖管理员权限环境执行 `pnpm`
-- 开发服务器启动联通性待手动验证
+- 当前只接入了最小壳层和基础提供器，没有真实业务页面
+- 路由仅保留一个根入口，不接入完整业务路由流
+- 未接入后端接口、字段映射、登录态和状态同步
+- 开发服务器启动联通性仍待手动验证

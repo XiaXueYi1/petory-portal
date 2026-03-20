@@ -1,9 +1,24 @@
 ﻿# Changelog
 
 - 初始化 `petory-web/` 基础目录骨架
-- 使用 `pnpm` 完成前端依赖安装
+- 使用 `pnpm` 完成前端依赖安装并补齐基础技术栈
+- 添加 `packageManager: pnpm@10.30.3`
+- 配置 `@` 别名，并同步到 Vite 与 TypeScript
+- 新增最小入口 `src/app/App.tsx`、`AppProviders`、`RootLayout`
+- 新增 `QueryClient` 基线和 Ant Design Provider 基线
+- 新增 `src/app/styles/global.css`，接入 Tailwind 基础样式入口
+- 清理模板文件与多余资源：
+  - `src/App.tsx`
+  - `src/App.css`
+  - `src/index.css`
+  - `src/assets/*`
+  - `public/favicon.svg`
+  - `public/icons.svg`
+  - `README.md`
+- 预留 `src/features/`、`src/pages/` 最小占位
+- 执行 `pnpm install`，结果通过
 - 执行 `pnpm run lint`，结果通过
 - `pnpm run dev` 留待手动启动验证
 - `pnpm run build` 调整为按需执行，不作为开发阶段默认检查项
 - 开发过程不保留临时日志文件，结果统一记录在文档中
-- 当前阶段不涉及业务功能与远程仓库接入
+- 当前阶段不涉及业务功能、后端联调或远程仓库接入
