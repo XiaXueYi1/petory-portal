@@ -1,22 +1,10 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
-import { loadMiniProgramEnv, toDefineConstantMap } from './env'
 import devConfig from './dev'
 import prodConfig from './prod'
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
-export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
-  const loadedEnv = loadMiniProgramEnv(mode)
-  const runtimeEnv = {
-    TARO_APP_ID: process.env.TARO_APP_ID ?? loadedEnv.TARO_APP_ID ?? '',
-    MINI_API_BASE_URL: process.env.MINI_API_BASE_URL ?? loadedEnv.MINI_API_BASE_URL ?? '',
-    MINI_AUTH_TOKEN_KEY: process.env.MINI_AUTH_TOKEN_KEY ?? loadedEnv.MINI_AUTH_TOKEN_KEY ?? '',
-    MINI_AUTH_HEADER_NAME: process.env.MINI_AUTH_HEADER_NAME ?? loadedEnv.MINI_AUTH_HEADER_NAME ?? '',
-    MINI_AUTH_HEADER_PREFIX: process.env.MINI_AUTH_HEADER_PREFIX ?? loadedEnv.MINI_AUTH_HEADER_PREFIX ?? '',
-    MINI_REQUEST_TIMEOUT: process.env.MINI_REQUEST_TIMEOUT ?? loadedEnv.MINI_REQUEST_TIMEOUT ?? '',
-    MINI_LOGIN_STRATEGY: process.env.MINI_LOGIN_STRATEGY ?? loadedEnv.MINI_LOGIN_STRATEGY ?? '',
-    MINI_WECHAT_PHONE_LOGIN_STATUS: process.env.MINI_WECHAT_PHONE_LOGIN_STATUS ?? loadedEnv.MINI_WECHAT_PHONE_LOGIN_STATUS ?? ''
-  }
+export default defineConfig<'webpack5'>(async (merge) => {
 
   const baseConfig: UserConfigExport<'webpack5'> = {
     projectName: 'mini-program',
@@ -34,9 +22,6 @@ export default defineConfig<'webpack5'>(async (merge, { command, mode }) => {
       "@tarojs/plugin-generator",
       "@tarojs/plugin-http"
     ],
-    defineConstants: {
-      ...toDefineConstantMap(runtimeEnv)
-    },
     copy: {
       patterns: [
       ],

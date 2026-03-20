@@ -1,10 +1,6 @@
 import Taro from '@tarojs/taro'
-import axios, { AxiosError, AxiosHeaders, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosHeaders, type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import type { MiniApiResponse, MiniHttpClientConfig, MiniRequestOptions } from './types'
-
-interface MiniAxiosRequestConfig extends AxiosRequestConfig {
-  withToken?: boolean
-}
 
 export class MiniRequestError<T = unknown> extends Error {
   readonly code: number
@@ -54,7 +50,7 @@ export class MiniHttpClient {
         headers: this.resolveHeaders(options),
         timeout: options.timeout,
         withToken: options.auth !== false
-      } as MiniAxiosRequestConfig)
+      } as AxiosRequestConfig)
 
       return this.resolveBusinessResponse(response.data)
     } catch (error) {
@@ -146,21 +142,20 @@ export class MiniHttpClient {
   }
 
   private registerInterceptors() {
-    this.instance.interceptors.request.use((config) => {
-      const reqConfig = config as MiniAxiosRequestConfig
-      const headers = AxiosHeaders.from(reqConfig.headers)
+    this.instance.interceptors.request.use((config: InternalAxiosRequestConfig & { withToken?: boolean }) => {
+      const headers = AxiosHeaders.from(config.headers ?? {})
 
       headers.set('x-client-type', 'mini-program')
 
-      if (reqConfig.withToken !== false) {
+      if (config.withToken !== false) {
         const token = this.getToken()
         if (token) {
           headers.set(this.authHeaderName, `${this.authHeaderPrefix} ${token}`)
         }
       }
 
-      reqConfig.headers = headers
-      return reqConfig
+      config.headers = headers as any
+      return config
     })
   }
 

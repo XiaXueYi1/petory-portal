@@ -34,8 +34,8 @@
 - 使用 Taro 4.x
 - React 写法
 - Sass 模板
-- 已有 `.env.dev / .env.prod`
-- 已有 `config/env.ts` 和运行时环境读取封装
+- 已有 `.env.development / .env.production`
+- 已有基于 Taro 官方 env mode 的运行时环境读取封装
 - 已有 class 形态请求层
 
 当前尚未确认的事实：
@@ -77,20 +77,20 @@
 
 当前小程序环境变量中，和主题/视觉系统关系较大的主要是：
 
-- `MINI_API_BASE_URL`
-- `MINI_LOGIN_STRATEGY`
-- `MINI_WECHAT_PHONE_LOGIN_STATUS`
+- `TARO_APP_API_BASE_URL`
+- `TARO_APP_LOGIN_STRATEGY`
+- `TARO_APP_WECHAT_PHONE_LOGIN_STATUS`
 
 后续如果主题需要加入环境级配置，建议新增但只限轻量字段，例如：
 
-- `MINI_THEME_MODE=light`
-- `MINI_ENABLE_EXPERIMENTAL_TW=false`
-- `MINI_BRAND_CHANNEL=default`
+- `TARO_APP_THEME_MODE=light`
+- `TARO_APP_ENABLE_EXPERIMENTAL_TW=false`
+- `TARO_APP_BRAND_CHANNEL=default`
 
 约束如下：
 
-1. `.env.dev` 可以控制开发期默认主题模式
-2. `.env.prod` 仅保留生产默认值，不承载复杂主题逻辑
+1. `.env.development` 可以控制开发期默认主题模式
+2. `.env.production` 仅保留生产默认值，不承载复杂主题逻辑
 3. 用户运行时切换后的主题状态，不应只靠环境变量驱动
 
 ---

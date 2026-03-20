@@ -1,0 +1,37 @@
+:root {
+  --pt-mini-color-bg-page: #f7f1e7;
+  --pt-mini-color-bg-card: rgba(255, 255, 255, 0.78);
+  --pt-mini-color-bg-soft: #fff8ef;
+  --pt-mini-color-text-primary: #241a14;
+  --pt-mini-color-text-secondary: #7a6556;
+  --pt-mini-color-border: rgba(150, 110, 72, 0.16);
+  --pt-mini-color-brand: #f97316;
+  --pt-mini-color-brand-strong: #ea580c;
+  --pt-mini-color-success: #16a34a;
+  --pt-mini-color-warning: #f59e0b;
+  --pt-mini-color-danger: #dc2626;
+  --pt-mini-radius-sm: 16rpx;
+  --pt-mini-radius-md: 24rpx;
+  --pt-mini-radius-lg: 36rpx;
+  --pt-mini-shadow-card: 0 18rpx 60rpx rgba(141, 92, 44, 0.12);
+  --pt-mini-shadow-popup: 0 24rpx 90rpx rgba(141, 92, 44, 0.18);
+}
+
+page,
+body {
+  width: 100%;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 28%),
+    linear-gradient(180deg, #fffaf4 0%, #f7f1e7 100%);
+  color: var(--pt-mini-color-text-primary);
+}
+
+page {
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+#app {
+  min-height: 100vh;
+}

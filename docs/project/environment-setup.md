@@ -107,8 +107,16 @@ pnpm run build
 
 环境文件：
 
-- `.env.dev`
-- `.env.prod`
+- `.env.development`
+- `.env.production`
+- 可选：`.env`、`.env.local`、`.env.development.local`、`.env.production.local`
+
+环境变量规则（按 Taro 官方 `env mode`）：
+
+- 业务侧可在运行时代码中使用的自定义变量必须使用 `TARO_APP_` 前缀
+- 平台模式由 `process.env.TARO_ENV` 区分
+- 示例文档：
+  - `https://docs.taro.zone/docs/env-mode-config`
 
 安装依赖：
 
@@ -147,7 +155,7 @@ pnpm run build:weapp
 - `mini-program/dist/` 已存在构建产物
 - `petory-server/` 已接入 `.env.dev / .env.prod`、Prisma、PostgreSQL、Redis 和 auth2 相关配置
 - `petory-web/` 已接入 `.env.dev / .env.prod` 和 Web auth2 相关配置
-- `mini-program/` 已接入 `.env.dev / .env.prod` 和 mini auth2 请求层配置
+- `mini-program/` 已切换到官方 `.env.development / .env.production`，并接入 mini auth 请求层配置
 
 建议后续将 `mini-program/dist/` 是否纳入版本控制单独确认，并补充仓库规则。
 
@@ -160,7 +168,8 @@ pnpm run build:weapp
 - PostgreSQL
 - Redis
 - Prisma
-- 三端 `.env.dev / .env.prod` 基线
+- server / web 仍使用 `.env.dev / .env.prod`
+- mini-program 使用 Taro 官方 `.env.development / .env.production`
 
 当前仍未完成：
 
@@ -192,8 +201,8 @@ REDIS_PORT=6379
 
 - `petory-server/.env.dev` 已包含认证密钥、JWT、数据库、Redis、开发注册密钥等 auth2 所需字段
 - `petory-web/.env.dev` 已包含 API baseURL、请求超时、refresh 开关与路径等字段
-- `mini-program/.env.dev` 已包含 Bearer Token header、超时、登录策略等字段
-- `.env.prod` 当前主要作为占位，不应视为生产可用配置
+- `mini-program/.env.development` 已包含 Bearer Token header、超时、登录策略等字段（均为 `TARO_APP_` 前缀）
+- `mini-program/.env.production` 当前主要作为占位，不应视为生产可用配置
 
 Taro 平台与模式补充：
 
