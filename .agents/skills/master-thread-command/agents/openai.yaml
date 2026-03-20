@@ -1,0 +1,4 @@
+interface:
+  display_name: "Master Thread Command"
+  short_description: "Expand a rough feature outline into a ready-to-send three-thread kickoff command."
+  default_prompt: "Use $master-thread-command to turn my rough feature outline into a complete main-thread kickoff command for server, web, and miniprogram."

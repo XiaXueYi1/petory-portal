@@ -1,0 +1,4 @@
+interface:
+  display_name: "Petory Parallel Dev"
+  short_description: "Repository rules and three-thread development guidance for Petory Portal."
+  default_prompt: "Use $petory-parallel-dev to follow this repository's three-thread workflow and implementation rules."
