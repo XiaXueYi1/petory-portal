@@ -456,8 +456,8 @@ Web 与小程序要统一：
 
 - 使用 HttpOnly Cookie
 - Web 端同时维护 `accessToken` 与 `refreshToken`
-- `accessToken` 负责当前接口访问
-- `refreshToken` 负责续签
+- `accessToken` 专门负责当前接口鉴权
+- `refreshToken` 不直接参与业务接口鉴权，只负责无感续签新的 `accessToken`
 - 前端通过 `/auth/profile` 获取用户初始化信息
 
 流程：
@@ -507,6 +507,7 @@ wx.login()
 - Mini Program：Bearer JWT
 - 两端统一用户、角色、权限、菜单模型
 - 两端统一通过 `/auth/profile` 收敛初始化信息
+- 后端 `auth` 登录实现必须兼容这两种类型，不应只面向单一端设计
 
 ---
 

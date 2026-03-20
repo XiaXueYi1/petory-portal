@@ -242,6 +242,12 @@ Mini Program：
 - 登录身份绑定
 - 会话管理
 
+约束补充：
+
+- 后端 `auth` 模块需要同时兼容 Web 与微信小程序两种登录类型
+- Web 走 `accessToken + refreshToken` 双 Cookie
+- 微信小程序走 Bearer Token
+
 ### 8.2 RBAC 与菜单模块
 
 负责：
@@ -315,8 +321,8 @@ Mini Program：
 建议方案：
 
 - 使用 HttpOnly Cookie 承载 `accessToken` 与 `refreshToken`
-- `accessToken` 用于当前接口访问
-- `refreshToken` 用于续签短期访问令牌
+- `accessToken` 专门用于当前接口鉴权
+- `refreshToken` 不直接参与业务接口鉴权，只用于无感刷新 `accessToken`
 - 登录后通过 `/auth/profile` 或 `/me` 获取初始化信息
 
 ### 9.3 微信小程序

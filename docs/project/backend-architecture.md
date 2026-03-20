@@ -243,6 +243,12 @@ modules/pets/
 - Web 走 Cookie
 - 小程序走 Authorization Header
 
+补充约束：
+
+- `accessToken` 专门用于接口鉴权
+- `refreshToken` 不直接参与业务接口鉴权，只用于无感刷新 `accessToken`
+- `auth` 模块的登录与续签逻辑必须同时兼容 Web 与小程序两种认证类型
+
 ### 8.2 鉴权
 
 鉴权用于判断用户能做什么。
