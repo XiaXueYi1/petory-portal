@@ -43,7 +43,7 @@
 - SSE（按需）
 - `class-validator` / `class-transformer`
 - Passport（按需）
-- Cookie / Token 双认证兼容
+- Web Cookie 双 Token / 小程序 Bearer Token 双认证兼容
 
 说明：上述内容来自 `ba.md` 与项目总纲，当前属于规划预留，不应表述为已落地。
 
@@ -234,7 +234,7 @@ modules/pets/
 
 需要支持：
 
-- Web Cookie 认证
+- Web `accessToken + refreshToken` Cookie 认证
 - 小程序 Token 认证
 
 推荐实现：
@@ -271,6 +271,7 @@ modules/pets/
 
 - Web 登录
 - Web 注销
+- Web accessToken 刷新
 - 小程序登录
 - 获取当前登录用户
 - 生成 profile
@@ -281,6 +282,7 @@ modules/pets/
 - 说明：以下路径均挂载在后端统一基础前缀 `/v1` 之下
 - `POST /auth/login`
 - `POST /auth/logout`
+- `POST /auth/refresh`
 - `GET /auth/profile`
 - `POST /auth/wechat-mini/login`
 

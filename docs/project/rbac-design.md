@@ -455,7 +455,9 @@ Web 与小程序要统一：
 方案：
 
 - 使用 HttpOnly Cookie
-- 后端控制会话
+- Web 端同时维护 `accessToken` 与 `refreshToken`
+- `accessToken` 负责当前接口访问
+- `refreshToken` 负责续签
 - 前端通过 `/auth/profile` 获取用户初始化信息
 
 流程：
@@ -463,7 +465,7 @@ Web 与小程序要统一：
 ```txt
 Web 登录
  -> 服务端校验账号
- -> 写入 Cookie
+ -> 写入 accessToken / refreshToken Cookie
  -> 前端请求 /auth/profile
  -> 获取 user + roles + permissions + menus
 ```
@@ -473,9 +475,9 @@ Web 登录
 方案：
 
 - 小程序通过 `wx.login()` 获取 `code`
-- 服务端换取 `openid/session_key`
+- 服务端使用 `code + appid + secret` 换取 `openid + session_key`
 - 服务端匹配或创建用户
-- 服务端签发业务 token
+- 服务端签发 Bearer JWT
 - 小程序使用 `Authorization` 请求接口
 
 流程：
@@ -484,7 +486,7 @@ Web 登录
 wx.login()
  -> code
  -> /auth/wechat-mini/login
- -> 服务端换 openid
+ -> 服务端换 openid + session_key
  -> 查询或创建 user
  -> 计算 roles / permissions / menus
  -> 返回 access_token + profile
@@ -498,6 +500,13 @@ wx.login()
 - Cookie 兼容能力受端能力限制
 - Token 更适合小程序登录态控制
 - 会话承载方式不同，不影响统一权限模型
+
+### 10.5 当前推荐的双端认证结论
+
+- Web：`accessToken + refreshToken` 双 Cookie
+- Mini Program：Bearer JWT
+- 两端统一用户、角色、权限、菜单模型
+- 两端统一通过 `/auth/profile` 收敛初始化信息
 
 ---
 
@@ -869,7 +878,7 @@ v1 不处理：
 4. `Role` 同时组织菜单和权限
 5. `Page / Button / API` 都通过权限码控制
 6. 前端动态路由采用 `componentKey + 本地白名单映射`
-7. Web 使用 Cookie，小程序使用 Bearer Token
+7. Web 使用 `accessToken + refreshToken` Cookie，小程序使用 Bearer Token
 8. 登录成功后统一返回 `user / roles / permissions / menus`
 9. 后端 Guard 是最终安全边界
 

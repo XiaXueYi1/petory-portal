@@ -307,14 +307,16 @@ Mini Program：
 
 分离：
 
-- Web 使用 Cookie / Session 体系
+- Web 使用 `accessToken + refreshToken` Cookie 体系
 - Mini Program 使用 Bearer Token
 
 ### 9.2 Web
 
 建议方案：
 
-- 使用 HttpOnly Cookie 或服务端会话
+- 使用 HttpOnly Cookie 承载 `accessToken` 与 `refreshToken`
+- `accessToken` 用于当前接口访问
+- `refreshToken` 用于续签短期访问令牌
 - 登录后通过 `/auth/profile` 或 `/me` 获取初始化信息
 
 ### 9.3 微信小程序
@@ -322,8 +324,8 @@ Mini Program：
 建议方案：
 
 - `wx.login()` 获取 `code`
-- 服务端换取 `openid/session_key`
-- 服务端签发业务 Token
+- 服务端使用 `code + appid + secret` 换取 `openid + session_key`
+- 服务端基于业务用户签发 JWT
 - 小程序通过 `Authorization: Bearer xxx` 调用接口
 
 ### 9.4 统一返回结构
@@ -455,5 +457,5 @@ docs/features/
 4. Web 与 Server 当前通过接口契约协作，不依赖源码互引。
 5. Mini Program 共仓管理，但不参与跨端运行时代码共享。
 6. 权限系统采用 `User -> Role -> Permission` 的设计方向。
-7. Web 使用 Cookie / Session 方向，小程序使用 Bearer Token 方向。
+7. Web 使用 `accessToken + refreshToken` Cookie 方向，小程序使用 Bearer Token 方向。
 8. 后续所有专项文档若与当前仓库结构冲突，应以当前真实目录和本文档修正后的结论为准。
