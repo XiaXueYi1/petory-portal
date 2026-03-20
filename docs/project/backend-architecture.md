@@ -279,6 +279,7 @@ modules/pets/
 - Web 注销
 - Web accessToken 刷新
 - 小程序登录
+- 小程序微信绑定手机号一键登录
 - 获取当前登录用户
 - 生成 profile
 - 用户身份绑定
@@ -291,6 +292,11 @@ modules/pets/
 - `POST /auth/refresh`
 - `GET /auth/profile`
 - `POST /auth/wechat-mini/login`
+
+补充说明：
+
+- 小程序登录第一阶段优先落地“微信绑定手机号一键登录”
+- 后端需要基于 `code` 换取 `openid + session_key`，并结合手机号完成用户匹配或创建
 
 ### 9.3 RBAC 模块职责
 

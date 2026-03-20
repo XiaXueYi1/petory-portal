@@ -247,6 +247,7 @@ Mini Program：
 - 后端 `auth` 模块需要同时兼容 Web 与微信小程序两种登录类型
 - Web 走 `accessToken + refreshToken` 双 Cookie
 - 微信小程序走 Bearer Token
+- 微信小程序第一阶段优先开发“微信绑定手机号一键登录”
 
 ### 8.2 RBAC 与菜单模块
 
@@ -331,6 +332,7 @@ Mini Program：
 
 - `wx.login()` 获取 `code`
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
+- 小程序侧优先使用微信绑定手机号一键登录能力，拿到手机号后完成用户匹配或创建
 - 服务端基于业务用户签发 JWT
 - 小程序通过 `Authorization: Bearer xxx` 调用接口
 
