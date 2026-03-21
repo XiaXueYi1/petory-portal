@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: 'Phone Login'
+  navigationBarTitleText: 'Petory Login'
 })

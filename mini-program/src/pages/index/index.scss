@@ -1,0 +1,116 @@
+.home-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 72rpx 40rpx 56rpx;
+  overflow: hidden;
+}
+
+.home-page__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(8rpx);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.home-page__orb--one {
+  top: -30rpx;
+  right: -36rpx;
+  width: 210rpx;
+  height: 210rpx;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.28), rgba(249, 115, 22, 0.02));
+}
+
+.home-page__orb--two {
+  bottom: 110rpx;
+  left: -52rpx;
+  width: 180rpx;
+  height: 180rpx;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.24), rgba(245, 158, 11, 0.02));
+}
+
+.home-page__hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-bottom: 36rpx;
+}
+
+.home-page__badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 10rpx 18rpx;
+  border: 1rpx solid var(--pt-mini-color-border);
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--pt-mini-color-brand-strong);
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+}
+
+.home-page__title {
+  font-size: 54rpx;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.home-page__subtitle {
+  color: var(--pt-mini-color-text-secondary);
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.home-page__card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+  padding: 40rpx 32rpx;
+  border: 1rpx solid var(--pt-mini-color-border);
+  border-radius: 36rpx;
+  background: var(--pt-mini-color-bg-card);
+  box-shadow: var(--pt-mini-shadow-card);
+}
+
+.home-page__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.home-page__label {
+  color: var(--pt-mini-color-text-secondary);
+  font-size: 24rpx;
+}
+
+.home-page__value {
+  font-size: 24rpx;
+  font-weight: 600;
+  text-align: right;
+}
+
+.home-page__actions {
+  position: relative;
+  z-index: 1;
+  margin-top: 28rpx;
+}
+
+.home-page__button {
+  height: 96rpx;
+  margin: 0;
+  border: none;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 96rpx;
+  box-shadow: 0 18rpx 40rpx rgba(249, 115, 22, 0.28);
+}
+
+.home-page__button::after {
+  border: none;
+}
