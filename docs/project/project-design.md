@@ -164,6 +164,7 @@ Mini Program：
 - Taro 4.x
 - React 写法
 - TypeScript
+- Taro 页面路由与页面配置导航，不使用 React Router
 - `.env.development / .env.production` 环境变量基线（遵循 Taro 官方 env mode）
 - class 形态请求层
 - Bearer Token 认证方向
@@ -256,7 +257,8 @@ Mini Program：
 - 后端 `auth` 模块需要同时兼容 Web 与微信小程序两种登录类型
 - Web 走 `accessToken + refreshToken` 双 Cookie
 - 微信小程序走 Bearer Token
-- 微信小程序第一阶段优先开发“微信绑定手机号一键登录”
+- 当前小程序默认路径为 `phone + appCode(code)` 登录
+- 小程序首次登录自动注册时，服务端需要同时补齐 Web 可用的手机号密码身份
 - 当前已完成 Web 最小登录闭环与 Mini Bearer Token 能力基线
 
 ### 8.2 RBAC 与菜单模块
@@ -334,6 +336,20 @@ Mini Program：
 - 使用 HttpOnly Cookie 承载 `accessToken` 与 `refreshToken`
 - `accessToken` 专门用于当前接口鉴权
 - `refreshToken` 不直接参与业务接口鉴权，只用于无感刷新 `accessToken`
+- Web 登录接口中的密码字段加解密方案放入后续 `auth4-fix`
+- 当前约定先采用 `AES-256-GCM`
+- 前端与后端共享同一个 Base64 密钥：
+  - Web：`VITE_AUTH_PASSWORD_AES_KEY_BASE64`
+  - Server：`AUTH_WEB_PASSWORD_AES_KEY_BASE64`
+- 当前开发基线密钥值：
+  - `ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=`
+- 前端与后端额外共享固定 `iv`：
+  - Web：`VITE_AUTH_PASSWORD_AES_IV_BASE64`
+  - Server：`AUTH_WEB_PASSWORD_AES_IV_BASE64`
+- 当前开发基线 `iv` 值：
+  - `Ea4hK8529EyK70+w`
+- 前端仅对登录接口里的 `password` 字段使用固定 key + 固定 iv 加密，服务端用同样的 key + iv 解密后再与数据库中的密码哈希做比对
+- 这层 `AES-256-GCM` 只作为传输层补充保护，不能替代 HTTPS
 - 登录后通过 `/v1/auth/profile` 获取初始化信息
 - 当前 Web 请求层已支持 `401 -> /v1/auth/refresh -> 原请求重放` 的最小闭环
 
@@ -345,6 +361,8 @@ Mini Program：
 - 小程序侧输入手机号，并提交 `phone + appCode(code)`
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
 - 首次登录时按 `phone + openid` 完成用户匹配或创建
+- 若首次登录自动注册，则服务端同时补齐该手机号的 Web 密码身份
+- 当前开发阶段默认初始密码为 `123456`，供后续 Web 登录使用
 - 后续重新登录时，只要手机号能查到已绑定的 `openid`，即可重新签发 token
 - 服务端基于业务用户签发 JWT
 - 小程序通过 `Authorization: Bearer xxx` 调用接口
@@ -352,7 +370,8 @@ Mini Program：
 当前落地边界：
 
 - Bearer Token 请求模式已经在小程序请求层设计中落地
-- 微信手机号一键登录基础真链路已经接入，但仍依赖真实可用的 appid / secret / code / phoneCode
+- 当前默认实现不再依赖微信手机号一键授权
+- 历史“一键获取手机号”方案文档仍保留，但不作为当前主路径
 - mini 端 `TARO_APP_ID` 与服务端 `WECHAT_MINI_APP_ID` 必须指向同一个微信小程序
 
 ### 9.4 统一返回结构

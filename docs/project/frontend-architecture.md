@@ -427,6 +427,14 @@ Web 的 request 层不与小程序共享。
 - 默认携带 Cookie 凭据
 - 遇到 `401` 时会尝试调用 `/v1/auth/refresh` 并重放原请求
 - 当前不在前端持久化 bearer token
+- Web 登录接口中的 `password` 字段加解密当前还未在代码中落地
+- 后续 `auth4-fix` 推荐仅对登录请求里的 `password` 使用 `VITE_AUTH_PASSWORD_AES_KEY_BASE64` 做 `AES-256-GCM` 加密，再由后端用同密钥解密并做哈希校验
+
+补充说明：
+
+- 这里明确使用的是 `AES-256-GCM`
+- 当前项目约定直接使用固定 `VITE_AUTH_PASSWORD_AES_IV_BASE64`
+- 正式环境仍必须使用 HTTPS
 
 ### 11.4 大屏扩展建议
 

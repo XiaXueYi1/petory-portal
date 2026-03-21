@@ -460,6 +460,13 @@ Web 与小程序要统一：
 - `refreshToken` 不直接参与业务接口鉴权，只负责无感续签新的 `accessToken`
 - 前端通过 `/auth/profile` 获取用户初始化信息
 - 账号形态收敛为 `phone + password`
+- Web 登录接口中的 `password` 字段加解密当前还未真实落地
+- 后续 `auth4-fix` 先使用 `AES-256-GCM`，前后端共享同一个 Base64 密钥
+- 推荐环境变量：`VITE_AUTH_PASSWORD_AES_KEY_BASE64`、`AUTH_WEB_PASSWORD_AES_KEY_BASE64`、`VITE_AUTH_PASSWORD_AES_IV_BASE64`、`AUTH_WEB_PASSWORD_AES_IV_BASE64`
+- 当前开发基线密钥值：`ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=`
+- 当前开发基线 `iv` 值：`Ea4hK8529EyK70+w`
+- 前端仅对登录接口中的 `password` 字段使用固定 key + 固定 iv 加密，服务端用同密钥解密后再做哈希比对
+- `AES-256-GCM` 仅用于避免密码以明文形态直接提交，正式环境仍必须依赖 HTTPS
 
 流程：
 
@@ -479,6 +486,8 @@ Web 登录
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
 - 个人主体场景下，前端输入手机号并提交 `phone + appCode(code)`
 - 首次登录时，服务端按 `phone + openid` 匹配或创建用户
+- 若首次自动注册，则服务端同步补齐 Web 可登录的手机号密码身份
+- 当前开发阶段默认初始密码为 `123456`
 - 后续登录时，只要手机号能查到已绑定 `openid`，即可登录并重新签发 token
 - 若库中无对应用户则自动注册，默认随机昵称、空头像
 - 服务端签发 Bearer JWT
@@ -494,6 +503,7 @@ wx.login()
  -> 服务端换 openid + session_key
  -> 首次查询 phone + openid
  -> 不存在则自动创建 user
+ -> 同步补齐 web_password 身份与默认密码
  -> 后续按 phone 命中已绑定 openid 的用户
  -> 计算 roles / permissions / menus
  -> 返回 access_token + profile
@@ -514,6 +524,7 @@ wx.login()
 - Mini Program：Bearer JWT
 - Mini Program 现阶段主路径为 `phone + appCode(code)` 登录
 - 原“微信绑定手机号一键登录”方案保留文档，但当前不作为默认实现
+- Mini 首次自动注册后，应能直接使用同手机号和默认密码登录 Web
 - 两端统一用户、角色、权限、菜单模型
 - 两端统一通过 `/auth/profile` 收敛初始化信息
 - 后端 `auth` 登录实现必须兼容这两种类型，不应只面向单一端设计

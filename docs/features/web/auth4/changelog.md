@@ -7,9 +7,12 @@
 - 请求头继续自动注入 `x-client-type: web`
 - Web 仍保持 Cookie 认证闭环和 `/auth/profile` 启动同步流程不变
 - 新增 `docs/features/web/auth4/` 目录下的本轮说明文档
+- 增补 Web 登录接口中的 `password` 字段后续推荐方案：`AES-256-GCM` 加密 -> 同密钥解密 -> 哈希比对
+- 补充 mini 首次自动注册后可使用默认密码 `123456` 登录 Web 的说明
 
 ## 已知限制
 
 - 本轮只做 Web 登录字段迁移，不涉及服务端认证改造
 - 还未补完整后台业务页、菜单树和权限路由
 - 仍然依赖后端 Cookie / Session 闭环可用
+- 当前登录页仍偏调试态，真实主题页放到后续 `auth4-fix`

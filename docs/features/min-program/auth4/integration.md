@@ -27,6 +27,14 @@
 }
 ```
 
+## 服务端协同约定
+
+- 服务端使用 `code + appid + secret` 兑换 `openid + session_key`
+- 首次登录按 `phone + openid` 自动注册或绑定
+- 首次自动注册时，服务端同步补齐 Web 可登录的密码身份
+- 当前开发阶段默认密码约定为 `123456`
+- mini 端不输入密码，也不持久化 refresh token 页面逻辑
+
 ## 环境变量
 
 本轮保持 Taro 官方 env mode：
@@ -44,5 +52,5 @@ auth4 相关默认值：
 - mini 端不做 refresh 流程
 - 登录时必须现取新的 `Taro.login()` code
 - 当前实现只覆盖 mini 登录页，不扩展业务首页
+- mini 端路由继续使用 Taro 页面配置，不使用 React Router
 - 历史的一键授权文档保留，但不作为当前默认实现
-

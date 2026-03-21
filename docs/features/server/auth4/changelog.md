@@ -10,6 +10,7 @@
   - 服务端仅兑换 `openid + session_key`
   - 首次登录按 `phone + openid` 自动注册或绑定
   - 不再依赖 `getuserphonenumber`
+  - 自动注册时同步补齐 Web 默认密码身份
 - `POST /v1/auth/dev-register`
   - 改为手机号注册
 - `AuthRepository`
@@ -19,6 +20,7 @@
 - `AuthTokenService`
   - Mini access token 改为长效策略，至少 7 天
   - Web 继续保持短期 access token + refresh token Cookie 方案
+- Web 登录链路补充了后续 `auth4-fix` 的推荐方案：仅对登录接口中的 `password` 做 `AES-256-GCM` 加密 -> 同密钥解密 -> 哈希比对
 
 ## 数据约束
 
@@ -32,3 +34,4 @@
 - Mini 仍保留 refresh token 能力，但当前客户端不强制使用
 - 本轮不扩展 RBAC 管理后台
 - 本轮不引入微信手机号一键授权作为默认路径
+- 默认密码 `123456` 仅限当前开发阶段，后续应补首次改密或显式重置流程

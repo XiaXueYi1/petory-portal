@@ -39,6 +39,10 @@
 用途：
 
 - Web 手机号密码登录
+- 当前代码基线仍按普通密码字段对接
+- 后续 `auth4-fix` 推荐改为：前端仅对登录请求中的 `password` 使用 `AES-256-GCM` 加密，服务端收到后使用同密钥解密，再做哈希校验
+- 开发环境共享密钥：
+  - `ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=`
 
 请求头示例：
 
@@ -131,7 +135,9 @@ x-client-type: mini-program
 2. 按 `phone + openid` 查找或创建用户
 3. 首次登录自动注册用户
 4. 默认随机昵称、空头像
-5. 绑定成功后签发 Bearer Token
+5. 同步补齐 `WEB_PASSWORD` 身份
+6. 当前开发阶段默认初始密码为 `123456`，以哈希形式保存
+7. 绑定成功后签发 Bearer Token
 
 Mini 响应：
 
@@ -164,6 +170,7 @@ Mini 响应：
 - `accessToken` 是 Mini 侧的主要鉴权凭证
 - `refreshToken` 当前保留在统一响应结构中，但 Mini 客户端不强制依赖 refresh 流程
 - `appCode` 不作为长期凭证入库，长期绑定标识是 `openid`
+- 首次自动注册完成后，用户也应能使用同手机号和默认密码登录 Web
 
 错误：
 

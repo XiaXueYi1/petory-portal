@@ -209,6 +209,17 @@ REDIS_PORT=6379
 - Web 当前收敛方向为 `phone + password + accessToken/refreshToken Cookie`
 - mini-program 现阶段收敛方向为 `phone + appCode(code) + Bearer Token`
 - mini-program Bearer Token 计划使用更长有效期，最少 7 天，且当前不强制要求 refresh
+- mini-program 首次自动注册时，服务端需要同步补齐 Web 可登录的密码身份
+- 当前开发阶段该默认初始密码约定为 `123456`
+- Web 登录接口中的 `password` 字段加解密当前尚未落地到代码，但开发环境密钥已预留到 `.env.dev`
+- 后续 `auth4-fix` 先使用：
+  - `VITE_AUTH_PASSWORD_AES_KEY_BASE64=ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=`
+  - `AUTH_WEB_PASSWORD_AES_KEY_BASE64=ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=`
+-  - `VITE_AUTH_PASSWORD_AES_IV_BASE64=Ea4hK8529EyK70+w`
+-  - `AUTH_WEB_PASSWORD_AES_IV_BASE64=Ea4hK8529EyK70+w`
+- 推荐链路为前端仅加密登录请求中的 `password`，服务端使用同密钥解密后再做密码哈希比对
+- 当前项目直接使用固定 `iv`，不额外引入动态协商
+- `AES-256-GCM` 不替代 HTTPS，正式环境仍必须启用 HTTPS
 - 原“微信绑定手机号一键登录”方案文档保留，但由于个人小程序主体限制，当前不作为默认实现路径
 
 Taro 平台与模式补充：

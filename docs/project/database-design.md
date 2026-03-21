@@ -155,6 +155,9 @@ DATABASE_URL="postgresql://postgres:123456@localhost:5432/postgres?schema=public
 - 首次登录时按 `phone + openid` 建立绑定
 - 后续重新登录时按手机号命中已绑定的 `openid` 关系即可重新签发 token
 - 当小程序端手机号首次登录且库中不存在该用户时，可自动创建用户，并给默认随机昵称、空头像
+- 如果首次自动注册的用户还没有 Web 密码身份，服务端应同时补齐 `web_password` 身份记录
+- 当前开发阶段可为这类自动注册用户初始化默认密码 `123456`，并以哈希形式写入 `credential_hash`
+- 后续若仅对 Web 登录接口的 `password` 字段使用 `AES-256-GCM`，数据库里也只保存后端哈希后的结果，不保存明文、前端密文或可逆值
 
 ---
 

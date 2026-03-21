@@ -260,6 +260,15 @@ modules/pets/
 - `accessToken` 专门用于接口鉴权
 - `refreshToken` 不直接参与业务接口鉴权，只用于无感刷新 `accessToken`
 - `auth` 模块的登录与续签逻辑必须同时兼容 Web 与小程序两种认证类型
+- Web 登录接口中的密码字段加解密当前还未真实落地
+- 后续 `auth4-fix` 先采用 `AES-256-GCM`：
+  - 前端与后端共享同一个 Base64 密钥
+  - 前端与后端共享固定 `iv`
+  - 服务端使用同密钥解密后再进入密码哈希比对
+  - 环境变量：`VITE_AUTH_PASSWORD_AES_KEY_BASE64`、`AUTH_WEB_PASSWORD_AES_KEY_BASE64`、`VITE_AUTH_PASSWORD_AES_IV_BASE64`、`AUTH_WEB_PASSWORD_AES_IV_BASE64`
+- 当前开发基线密钥值：`ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=`
+- 当前开发基线 `iv` 值：`Ea4hK8529EyK70+w`
+- `AES-256-GCM` 只作为传输层补充保护，生产环境仍必须依赖 HTTPS
 
 ### 8.2 鉴权
 
@@ -291,7 +300,7 @@ modules/pets/
 - Web 注销
 - Web accessToken 刷新
 - 小程序登录
-- 小程序微信绑定手机号一键登录
+- 小程序手机号 + `appCode(code)` 登录
 - 获取当前登录用户
 - 生成 profile
 - 用户身份绑定
@@ -307,12 +316,16 @@ modules/pets/
 
 补充说明：
 
-- 小程序登录第一阶段优先落地“微信绑定手机号一键登录”
+- Web 登录主路径为 `phone + password`
+- Web 端登录接口中的密码字段加解密放入后续 `auth4-fix`
+- 当前推荐方案为 `AES-256-GCM` 对称加密传输，服务端解密后再做哈希比对
 - 后端需要基于 `code` 换取 `openid + session_key`
 - 首次登录时再按 `phone + openid` 完成用户匹配或创建
+- 首次登录自动注册时，应同时确保该手机号具备 Web 可登录的密码身份
+- 当前开发阶段默认初始密码可设为 `123456`
 - 后续登录时，只要手机号能查到已绑定的 `openid`，即可重新签发 mini token
 - 当前 `POST /auth/wechat-mini/login` 已落地基础真链路
-- 该接口依赖真实可用的 `WECHAT_MINI_APP_ID`、`WECHAT_MINI_APP_SECRET`、mini 端 `code` 和 `phoneCode`
+- 该接口依赖真实可用的 `WECHAT_MINI_APP_ID`、`WECHAT_MINI_APP_SECRET` 和 mini 端 `code`
 - 若 mini 端 `TARO_APP_ID` 与服务端 `WECHAT_MINI_APP_ID` 不一致，微信会返回 `40029 invalid code`
 
 ### 9.3 RBAC 模块职责
