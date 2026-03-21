@@ -1,31 +1,34 @@
-# auth4 - Server Changelog
+# Server Auth4 Changelog
 
-## 本轮新增
+## 本轮变更
 
-- 将 Web 登录主路径收敛为 `phone + password`
-- 将 Mini 登录主路径收敛为 `phone + appCode(code)`
-- Mini 登录接入 `code -> openid + session_key` 交换流程
-- Mini 首次登录支持按 `phone + openid` 自动注册与绑定
-- Mini access token 有效期延长到至少 7 天
+- `POST /v1/auth/login`
+  - 从 `username + password` 改为 `phone + password`
+  - Web 继续走 Cookie 登录态
+- `POST /v1/auth/wechat-mini/login`
+  - 从微信手机号授权路径收口为 `phone + appCode(code)`
+  - 服务端仅兑换 `openid + session_key`
+  - 首次登录按 `phone + openid` 自动注册或绑定
+  - 不再依赖 `getuserphonenumber`
+- `POST /v1/auth/dev-register`
+  - 改为手机号注册
+- `AuthRepository`
+  - Web 登录按手机号查找身份
+  - Mini 首次登录按手机号与 openid 绑定
+  - Mini 首次注册默认随机昵称、空头像
+- `AuthTokenService`
+  - Mini access token 改为长效策略，至少 7 天
+  - Web 继续保持短期 access token + refresh token Cookie 方案
 
-## 本轮修改
+## 数据约束
 
-- `login.dto` 从旧账号字段切换为手机号字段
-- `wechat-mini-login.dto` 收敛为 `phone + code`
-- `auth.service`、`auth.repository`、`wechat-mini-auth.service` 按新认证策略重组
-- `dev-register` 改为手机号注册路径
-
-## 数据与模型说明
-
-- 本轮未修改 Prisma schema
-- 继续复用：
-  - `users.phone`
-  - `user_auth_identities`
-- `openid` 作为 Mini 长期绑定标识
-- `appCode(code)` 不作为长期存储字段
+- 本轮没有新增 Prisma schema 文件
+- 现有 `users` / `user_auth_identities` 已能承载 auth4 绑定关系
+- `appCode` 仅用于登录时临时兑换，不入库
+- `openid` 作为 Mini 侧长期绑定标识
 
 ## 已知限制
 
-- Mini 当前默认登录方案不再依赖微信手机号一键授权
-- Mini 当前不做 refresh token 页面逻辑
-- 真实联调仍依赖正确的微信 `appid/secret` 与本地环境配置
+- Mini 仍保留 refresh token 能力，但当前客户端不强制使用
+- 本轮不扩展 RBAC 管理后台
+- 本轮不引入微信手机号一键授权作为默认路径
