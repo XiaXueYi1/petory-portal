@@ -48,4 +48,21 @@ describe('Auth auth2 helpers', () => {
     expect(refreshPayload.sid).toBe('session-1');
     expect(refreshPayload.jti).toBe(tokens.refreshTokenId);
   });
+
+  it('keeps mini-program access tokens long lived', () => {
+    const tokenService = new AuthTokenService(configService);
+    const tokens = tokenService.issueTokens(
+      {
+        userId: 'user-mini-local',
+        username: '13800138000',
+      },
+      'mini-program',
+    );
+
+    const accessPayload = tokenService.verifyAccessToken(tokens.accessToken);
+
+    expect(tokens.accessExpiresIn).toBe(604800);
+    expect(accessPayload.clientType).toBe('mini-program');
+    expect(accessPayload.sub).toBe('user-mini-local');
+  });
 });

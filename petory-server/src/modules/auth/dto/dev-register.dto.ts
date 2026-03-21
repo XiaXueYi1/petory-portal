@@ -4,13 +4,15 @@ import {
   IsOptional,
   IsString,
   Length,
+  Matches,
 } from 'class-validator';
 
 export class DevRegisterDto {
   @IsString()
   @IsNotEmpty()
-  @Length(3, 64)
-  declare username: string;
+  @Length(11, 11)
+  @Matches(/^1[3-9]\d{9}$/)
+  declare phone: string;
 
   @IsString()
   @IsNotEmpty()

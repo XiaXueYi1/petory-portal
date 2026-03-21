@@ -1,10 +1,11 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 
 export class LoginDto {
   @IsString()
   @IsNotEmpty()
-  @Length(3, 64)
-  declare username: string;
+  @Length(11, 11)
+  @Matches(/^1[3-9]\d{9}$/)
+  declare phone: string;
 
   @IsString()
   @IsNotEmpty()
