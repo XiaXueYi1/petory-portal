@@ -1,6 +1,6 @@
-export interface MiniWechatPhoneLoginRequest {
+export interface MiniPhoneAppCodeLoginRequest {
+  phone: string
   code: string
-  phoneCode: string
 }
 
 export interface MiniAuthProfile {
@@ -29,12 +29,10 @@ export interface MiniAuthMenu {
   children: MiniAuthMenu[]
 }
 
-export interface MiniWechatPhoneLoginResponse {
+export interface MiniPhoneAppCodeLoginResponse {
   accessToken: string
-  refreshToken?: string
   tokenType?: 'Bearer'
   expiresIn?: number
-  refreshExpiresIn?: number
   authMode?: 'token'
   profile: MiniAuthProfile
 }

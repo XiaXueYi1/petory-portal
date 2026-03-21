@@ -1,79 +1,44 @@
 import { useState } from 'react'
-import { Button, Text, View } from '@tarojs/components'
+import { Button, Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { miniEnv } from '@/shared/config/env'
 import { miniHttp } from '@/shared/request'
-import { loginWithWechatPhone } from '@/features/auth/api'
-import type { MiniWechatPhoneLoginRequest } from '@/features/auth'
+import { loginWithMiniPhoneAppCode } from '@/features/auth/api'
+import type { MiniPhoneAppCodeLoginRequest } from '@/features/auth'
 import './index.scss'
 
-type LoginStage = 'idle' | 'loading-code' | 'ready' | 'submitting' | 'success' | 'error'
+type LoginStage = 'idle' | 'submitting' | 'success' | 'error'
 
-interface PhoneNumberEvent {
+interface PhoneInputEvent {
   detail?: {
-    code?: string
-    errMsg?: string
+    value?: string
   }
 }
 
+const PHONE_PATTERN = /^1[3-9]\d{9}$/
+
 export default function LoginPage() {
+  const [phone, setPhone] = useState('')
   const [stage, setStage] = useState<LoginStage>('idle')
-  const [statusText, setStatusText] = useState('正在准备微信登录状态')
-  const [phoneLoginHint, setPhoneLoginHint] = useState(
-    '请点击按钮并授权手机号，当前只支持微信手机号一键登录。'
+  const [statusText, setStatusText] = useState('Enter your phone number to sign in.')
+  const [hintText, setHintText] = useState(
+    'Mini auth4 uses phone + appCode(code) as the default login path and stores a long-lived Bearer token locally.'
   )
   const [profileName, setProfileName] = useState('')
 
-  const prepareLoginCode = async () => {
-    try {
-      setStage('loading-code')
-      setStatusText('正在获取微信登录凭证')
-      const result = await Taro.login()
-
-      if (!result.code) {
-        throw new Error('未获取到微信登录 code')
-      }
-
-      setStage('ready')
-      setStatusText('微信登录凭证已准备完成')
-      return result.code
-    } catch (error) {
-      console.error('prepareLoginCode failed', error)
-      setStage('error')
-      setStatusText('微信登录凭证获取失败，请稍后重试')
-      return ''
-    }
+  const handlePhoneChange = (event: PhoneInputEvent) => {
+    setPhone(event.detail?.value ?? '')
   }
 
-  const handlePhoneLogin = async (event: PhoneNumberEvent) => {
-    console.log('handlePhoneLogin event', event)
-    const phoneCode = event.detail?.code || ''
-    const phoneAuthMessage = event.detail?.errMsg || ''
+  const handleLogin = async () => {
+    const normalizedPhone = phone.trim()
 
-    if (!phoneCode) {
-      const denied =
-        phoneAuthMessage.includes('deny') || phoneAuthMessage.includes('fail')
-
+    if (!PHONE_PATTERN.test(normalizedPhone)) {
       setStage('error')
-      setStatusText('未获取到手机号授权')
-      setPhoneLoginHint(
-        denied
-          ? '请确认你已同意微信手机号授权，并在支持真实手机号能力的环境中测试。'
-          : '请确认当前环境支持手机号授权，并重新触发一次微信手机号登录。'
-      )
-
+      setStatusText('Please enter a valid phone number.')
+      setHintText('Use a valid mainland China mobile number, then try again.')
       Taro.showToast({
-        title: '未获取手机号授权',
-        icon: 'none'
-      })
-      return
-    }
-
-    const currentLoginCode = await prepareLoginCode()
-
-    if (!currentLoginCode) {
-      Taro.showToast({
-        title: '请稍后重试',
+        title: 'Invalid phone number',
         icon: 'none'
       })
       return
@@ -81,49 +46,55 @@ export default function LoginPage() {
 
     try {
       setStage('submitting')
-      setStatusText('正在提交微信手机号一键登录')
-      setPhoneLoginHint('正在与服务器完成手机号绑定与登录。')
+      setStatusText('Fetching a fresh WeChat login code...')
+      setHintText('The login button always fetches a fresh appCode(code) at submit time.')
 
-      const payload: MiniWechatPhoneLoginRequest = {
-        code: currentLoginCode,
-        phoneCode
+      const loginResult = await Taro.login()
+      const code = loginResult.code?.trim()
+
+      if (!code) {
+        throw new Error('Failed to get WeChat login code')
       }
 
-      const response = await loginWithWechatPhone(payload)
+      const payload: MiniPhoneAppCodeLoginRequest = {
+        phone: normalizedPhone,
+        code
+      }
+
+      const response = await loginWithMiniPhoneAppCode(payload)
 
       if (!response?.accessToken) {
-        throw new Error('登录响应缺少 accessToken')
+        throw new Error('Login response missing accessToken')
       }
 
       miniHttp.setToken(response.accessToken)
-      setStage('success')
+
       setProfileName(
         response.profile?.user?.nickname ||
         response.profile?.user?.username ||
-        'Petory 用户'
+        'Petory User'
       )
-      setStatusText('登录成功，已完成手机号一键登录')
-      setPhoneLoginHint('当前版本只保留微信手机号一键登录入口。')
+      setStage('success')
+      setStatusText('Login successful. Token stored locally.')
+      setHintText('Mini auth4 does not use a refresh flow. If the token expires, sign in again.')
 
       Taro.showToast({
-        title: '登录成功',
+        title: 'Login successful',
         icon: 'success'
       })
     } catch (error) {
-      console.error('phone login failed', error)
+      console.error('mini auth4 login failed', error)
       setStage('error')
-      setStatusText('登录失败，请稍后重试')
-      setPhoneLoginHint('请确认微信授权、AppID 配置以及后端服务是否可用。')
+      setStatusText('Login failed. Please try again later.')
+      setHintText('Check the phone number, backend service, and WeChat login code.')
       Taro.showToast({
-        title: '登录失败',
+        title: 'Login failed',
         icon: 'none'
       })
     }
   }
 
-  const handleRetry = () => {
-    void prepareLoginCode()
-  }
+  const isSubmitting = stage === 'submitting'
 
   return (
     <View className='login-page'>
@@ -132,9 +103,9 @@ export default function LoginPage() {
 
       <View className='login-page__hero'>
         <Text className='login-page__badge'>PETORY MINI</Text>
-        <Text className='login-page__title'>微信手机号一键登录</Text>
+        <Text className='login-page__title'>Phone Login</Text>
         <Text className='login-page__subtitle'>
-          当前只保留微信用户手机号一键登录入口。点击按钮后会先获取最新的微信登录凭证，再提交手机号授权完成登录。
+          The default path is phone + appCode(code), which fits the current personal mini-program setup.
         </Text>
       </View>
 
@@ -142,68 +113,59 @@ export default function LoginPage() {
         <View className='login-page__stack'>
           <View className='login-page__summary'>
             <View className='login-page__summary-item'>
-              <Text className='login-page__summary-label'>策略</Text>
+              <Text className='login-page__summary-label'>Strategy</Text>
               <Text className='login-page__summary-value'>
-                {miniEnv.loginStrategy === 'wechat-phone-first'
-                  ? '手机号一键登录'
-                  : miniEnv.loginStrategy}
+                {miniEnv.loginStrategy}
               </Text>
             </View>
             <View className='login-page__summary-item'>
-              <Text className='login-page__summary-label'>状态</Text>
-              <Text className='login-page__summary-value'>
-                {stage === 'success' ? '已登录' : '待登录'}
-              </Text>
+              <Text className='login-page__summary-label'>Token</Text>
+              <Text className='login-page__summary-value'>Bearer</Text>
             </View>
             <View className='login-page__summary-item'>
-              <Text className='login-page__summary-label'>配置</Text>
+              <Text className='login-page__summary-label'>Status</Text>
               <Text className='login-page__summary-value'>
-                {miniEnv.wechatPhoneLoginStatus === 'page-ready'
-                  ? '页面已就绪'
-                  : miniEnv.wechatPhoneLoginStatus}
+                {miniEnv.wechatPhoneLoginStatus}
               </Text>
             </View>
           </View>
 
+          <View className='login-page__field'>
+            <Text className='login-page__field-label'>Phone Number</Text>
+            <Input
+              className='login-page__input'
+              type='number'
+              maxlength={11}
+              placeholder='Enter your phone number'
+              value={phone}
+              onInput={handlePhoneChange}
+            />
+            <Text className='login-page__field-tip'>
+              The page will fetch a fresh appCode(code) only when you tap Login.
+            </Text>
+          </View>
+
           <View className='login-page__note'>
-            {statusText}
-            {profileName ? `：${profileName}` : ''}
+            <Text>{statusText}</Text>
+            {profileName ? <Text>{`, ${profileName}`}</Text> : null}
             <View className='login-page__divider' />
-            {phoneLoginHint}
+            <Text>{hintText}</Text>
           </View>
 
           <Button
             className='login-page__button'
-            openType='getPhoneNumber'
-            onGetPhoneNumber={handlePhoneLogin}
-            disabled={stage === 'loading-code' || stage === 'submitting'}
+            onClick={handleLogin}
+            disabled={isSubmitting}
           >
-            {stage === 'submitting' ? '登录中...' : '微信手机号一键登录'}
+            {isSubmitting ? 'Signing in...' : 'Login'}
           </Button>
-
-          <Button
-            className='login-page__button login-page__button--ghost'
-            onClick={handleRetry}
-            disabled={stage === 'loading-code' || stage === 'submitting'}
-          >
-            重新获取微信凭证
-          </Button>
-
-          {stage === 'error' && (
-            <Button
-              className='login-page__button login-page__button--danger'
-              onClick={handleRetry}
-            >
-              重新尝试登录
-            </Button>
-          )}
         </View>
       </View>
 
       <View className='login-page__footer'>
-        <Text>当前只支持微信绑定手机号一键登录。</Text>
+        <Text>After login, the token is saved locally and future requests automatically carry the Authorization header.</Text>
         <Text>
-          登录成功后会返回 accessToken，mini 端会自动写入请求层并附加 Authorization 头。
+          Mini auth4 does not use refresh. When the token expires, return to the login page and sign in again.
         </Text>
       </View>
     </View>

@@ -1,8 +1,8 @@
 import { miniHttp } from '@/shared/request'
-import type { MiniWechatPhoneLoginRequest, MiniWechatPhoneLoginResponse } from './index'
+import type { MiniPhoneAppCodeLoginRequest, MiniPhoneAppCodeLoginResponse } from './index'
 
-export function loginWithWechatPhone(payload: MiniWechatPhoneLoginRequest) {
-  return miniHttp.post<MiniWechatPhoneLoginResponse, MiniWechatPhoneLoginRequest>(
+export function loginWithMiniPhoneAppCode(payload: MiniPhoneAppCodeLoginRequest) {
+  return miniHttp.post<MiniPhoneAppCodeLoginResponse, MiniPhoneAppCodeLoginRequest>(
     '/auth/wechat-mini/login',
     payload,
     { auth: false }

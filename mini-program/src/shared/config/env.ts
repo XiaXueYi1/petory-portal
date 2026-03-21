@@ -4,8 +4,8 @@ const DEFAULTS = {
   authHeaderName: 'Authorization',
   authHeaderPrefix: 'Bearer',
   requestTimeout: 10000,
-  loginStrategy: 'wechat-phone-first',
-  wechatPhoneLoginStatus: 'page-ready'
+  loginStrategy: 'phone-appcode',
+  wechatPhoneLoginStatus: 'auth4-ready'
 } as const
 
 function toNumber(value: string | undefined, fallback: number) {
