@@ -21,7 +21,7 @@ export class AuthTokenService {
   ): IssuedTokens {
     const activeSessionId = sessionId ?? randomUUID();
     const issuedAt = Math.floor(Date.now() / 1000);
-    const accessExpiresIn = this.getAccessTokenTtlSeconds();
+    const accessExpiresIn = this.getAccessTokenTtlSeconds(clientType);
     const refreshExpiresIn = this.getRefreshTokenTtlSeconds();
     const refreshTokenId = randomUUID();
 
@@ -150,8 +150,14 @@ export class AuthTokenService {
     return `${this.configService.getOrThrow<string>('AUTH_REFRESH_SESSION_PREFIX')}:${sessionId}`;
   }
 
-  getAccessTokenTtlSeconds(): number {
-    return this.getNumberConfig('AUTH_ACCESS_TOKEN_TTL_SECONDS');
+  getAccessTokenTtlSeconds(clientType?: AuthClientType): number {
+    const accessTtl = this.getNumberConfig('AUTH_ACCESS_TOKEN_TTL_SECONDS');
+
+    if (clientType === 'mini-program') {
+      return Math.max(accessTtl, this.getRefreshTokenTtlSeconds());
+    }
+
+    return accessTtl;
   }
 
   getRefreshTokenTtlSeconds(): number {

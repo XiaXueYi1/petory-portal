@@ -46,9 +46,9 @@ export class AuthService {
     response: Response,
   ): Promise<LoginResponseDto> {
     const clientType = this.getClientType(request);
-    const username = payload.username.trim();
+    const phone = payload.phone.trim();
     const password = payload.password.trim();
-    const user = await this.authRepository.findPasswordUserByUsername(username);
+    const user = await this.authRepository.findPasswordUserByPhone(phone);
 
     if (
       !user ||
@@ -56,7 +56,7 @@ export class AuthService {
       !user.passwordHash ||
       !this.authPasswordService.verifyPassword(password, user.passwordHash)
     ) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('Invalid phone or password');
     }
 
     await this.authRepository.markUserLastLogin(user.userId);
@@ -213,7 +213,7 @@ export class AuthService {
     }
 
     const user = await this.authRepository.registerDevUser({
-      username: payload.username.trim(),
+      phone: payload.phone.trim(),
       passwordHash: this.authPasswordService.hashPassword(
         payload.password.trim(),
       ),
@@ -251,16 +251,17 @@ export class AuthService {
 
     if (clientType !== AUTH_MINI_PROGRAM_CLIENT_TYPE) {
       throw new BadRequestException(
-        'Wechat mini-program phone login only accepts x-client-type: mini-program',
+        'Wechat mini-program login only accepts x-client-type: mini-program',
       );
     }
 
-    const { openid, phoneNumber } =
-      await this.wechatMiniAuthService.exchangeLoginAndPhoneCode(payload);
+    const { openid } = await this.wechatMiniAuthService.exchangeLoginCode(
+      payload.code,
+    );
 
     const user = await this.authRepository.upsertWechatMiniPhoneUser({
       openId: openid,
-      phoneNumber,
+      phoneNumber: payload.phone.trim(),
     });
 
     if (user.status !== 'active') {

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
 import {
   AuthProvider,
   MenuStatus,
@@ -49,14 +50,14 @@ type MenuNodeDraft = Omit<AuthMenu, 'children'> & {
 export class AuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findPasswordUserByUsername(
-    username: string,
+  async findPasswordUserByPhone(
+    phone: string,
   ): Promise<AuthSubjectRecord | null> {
     const identity = await this.prisma.userAuthIdentity.findUnique({
       where: {
         provider_providerUserId: {
           provider: AuthProvider.WEB_PASSWORD,
-          providerUserId: username,
+          providerUserId: phone,
         },
       },
       include: {
@@ -198,7 +199,7 @@ export class AuthRepository {
   }
 
   async registerDevUser(input: {
-    username: string;
+    phone: string;
     passwordHash: string;
     nickname?: string;
     email?: string;
@@ -207,7 +208,7 @@ export class AuthRepository {
       where: {
         provider_providerUserId: {
           provider: AuthProvider.WEB_PASSWORD,
-          providerUserId: input.username,
+          providerUserId: input.phone,
         },
       },
       include: {
@@ -217,6 +218,11 @@ export class AuthRepository {
 
     const existingUser =
       existingIdentity?.user ??
+      (await this.prisma.user.findUnique({
+        where: {
+          phone: input.phone,
+        },
+      })) ??
       (input.email
         ? await this.prisma.user.findUnique({
             where: {
@@ -229,8 +235,9 @@ export class AuthRepository {
       existingUser ??
       (await this.prisma.user.create({
         data: {
+          phone: input.phone,
           email: input.email ?? null,
-          nickname: input.nickname?.trim() || input.username,
+          nickname: input.nickname?.trim() || input.phone,
           avatar: '',
           status: UserStatus.ACTIVE,
         },
@@ -240,7 +247,8 @@ export class AuthRepository {
       where: { id: user.id },
       data: {
         email: input.email ?? user.email,
-        nickname: input.nickname?.trim() || user.nickname || input.username,
+        phone: input.phone,
+        nickname: input.nickname?.trim() || user.nickname || input.phone,
         status: UserStatus.ACTIVE,
       },
     });
@@ -249,7 +257,7 @@ export class AuthRepository {
       where: {
         provider_providerUserId: {
           provider: AuthProvider.WEB_PASSWORD,
-          providerUserId: input.username,
+          providerUserId: input.phone,
         },
       },
       update: {
@@ -259,7 +267,7 @@ export class AuthRepository {
       create: {
         userId: user.id,
         provider: AuthProvider.WEB_PASSWORD,
-        providerUserId: input.username,
+        providerUserId: input.phone,
         credentialHash: input.passwordHash,
       },
     });
@@ -405,7 +413,7 @@ export class AuthRepository {
   }
 
   private buildWechatMiniNickname(phoneNumber: string): string {
-    const tail = phoneNumber.slice(-4);
-    return tail ? `WeChat User${tail}` : 'WeChat User';
+    const suffix = randomBytes(2).toString('hex').toUpperCase();
+    return `WeChat User${suffix}`;
   }
 }
