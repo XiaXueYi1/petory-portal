@@ -10,9 +10,11 @@ import { APP_NAME } from '@/shared/constants/app'
 import { ApiError } from '@/shared/lib/request'
 
 const DEFAULT_ACCOUNT: LoginPayload = {
-  username: 'admin',
-  password: '123456',
+  phone: '',
+  password: '',
 }
+
+const PHONE_RULE = /^1[3-9]\d{9}$/
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -54,7 +56,7 @@ export function LoginPage() {
   const handleSubmit: FormProps<LoginPayload>['onFinish'] = (values) => {
     loginMutation.reset()
     loginMutation.mutate({
-      username: values.username.trim(),
+      phone: values.phone.trim(),
       password: values.password,
     })
   }
@@ -85,12 +87,12 @@ export function LoginPage() {
                 maxWidth: 620,
               }}
             >
-              Auth2 now uses dual cookies for access and refresh. This screen
-              focuses on the minimal login flow, profile bootstrap, silent refresh,
-              and redirect after sign-in.
+              Web auth4 switches the login form to phone + password while keeping
+              the existing cookie-based auth flow, profile bootstrap, and silent
+              refresh unchanged.
             </Typography.Paragraph>
             <div className="grid gap-3 sm:grid-cols-3">
-              <InfoBlock label="Default User" value="admin" />
+              <InfoBlock label="Login Mode" value="phone + password" />
               <InfoBlock label="Cookie Mode" value="access + refresh" />
               <InfoBlock label="API Base" value={env.apiBaseUrl} />
             </div>
@@ -109,16 +111,17 @@ export function LoginPage() {
               <Typography.Paragraph
                 style={{ margin: 0, color: 'var(--app-muted)' }}
               >
-                This round keeps the UI minimal. Web does not persist any bearer
-                token and relies on server-set cookies plus profile bootstrap.
+                Enter the phone number and password. The server still writes
+                cookies after login, and the app hydrates auth state through
+                /auth/profile.
               </Typography.Paragraph>
             </div>
 
             <Alert
               type="info"
               showIcon
-              message="Local admin account: admin / 123456"
-              description="The server writes cookies after login, then the app hydrates auth state through /auth/profile."
+              message="Web auth contract: phone + password"
+              description="The request layer keeps x-client-type: web and credentials include enabled so the backend can maintain the cookie session."
             />
 
             {errorMessage ? <Alert type="error" showIcon message={errorMessage} /> : null}
@@ -130,11 +133,24 @@ export function LoginPage() {
               autoComplete="off"
             >
               <Form.Item
-                label="Username"
-                name="username"
-                rules={[{ required: true, message: 'Please enter your username.' }]}
+                label="Phone"
+                name="phone"
+                rules={[
+                  { required: true, message: 'Please enter your phone number.' },
+                  {
+                    pattern: PHONE_RULE,
+                    message: 'Please enter a valid mainland China phone number.',
+                  },
+                ]}
               >
-                <Input size="large" placeholder="Enter your username" />
+                <Input
+                  size="large"
+                  type="tel"
+                  maxLength={11}
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  placeholder="Enter your phone number"
+                />
               </Form.Item>
 
               <Form.Item
