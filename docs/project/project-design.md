@@ -342,8 +342,10 @@ Mini Program：
 当前方向：
 
 - `wx.login()` 获取 `code`
+- 小程序侧输入手机号，并提交 `phone + appCode(code)`
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
-- 小程序侧优先使用微信绑定手机号一键登录能力，拿到手机号后完成用户匹配或创建
+- 首次登录时按 `phone + openid` 完成用户匹配或创建
+- 后续重新登录时，只要手机号能查到已绑定的 `openid`，即可重新签发 token
 - 服务端基于业务用户签发 JWT
 - 小程序通过 `Authorization: Bearer xxx` 调用接口
 

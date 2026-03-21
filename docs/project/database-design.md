@@ -152,6 +152,8 @@ DATABASE_URL="postgresql://postgres:123456@localhost:5432/postgres?schema=public
 - Web 端推荐收敛为 `phone + password`
 - 小程序现阶段推荐使用 `phone + appCode(code)` 登录，但 `appCode` 不建议直接入库
 - 更稳妥的绑定方式是服务端实时用 `appCode` 换取 `openid`，并在 `user_auth_identities` 中保存 `mini_openid`
+- 首次登录时按 `phone + openid` 建立绑定
+- 后续重新登录时按手机号命中已绑定的 `openid` 关系即可重新签发 token
 - 当小程序端手机号首次登录且库中不存在该用户时，可自动创建用户，并给默认随机昵称、空头像
 
 ---

@@ -478,7 +478,8 @@ Web 登录
 - 小程序通过 `wx.login()` 获取 `code`
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
 - 个人主体场景下，前端输入手机号并提交 `phone + appCode(code)`
-- 服务端按 `phone + openid` 匹配或创建用户
+- 首次登录时，服务端按 `phone + openid` 匹配或创建用户
+- 后续登录时，只要手机号能查到已绑定 `openid`，即可登录并重新签发 token
 - 若库中无对应用户则自动注册，默认随机昵称、空头像
 - 服务端签发 Bearer JWT
 - 小程序使用 `Authorization` 请求接口
@@ -491,8 +492,9 @@ wx.login()
  -> 前端输入 phone
  -> /auth/wechat-mini/login
  -> 服务端换 openid + session_key
- -> 查询 phone + openid
+ -> 首次查询 phone + openid
  -> 不存在则自动创建 user
+ -> 后续按 phone 命中已绑定 openid 的用户
  -> 计算 roles / permissions / menus
  -> 返回 access_token + profile
 ```

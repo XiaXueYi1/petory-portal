@@ -308,7 +308,9 @@ modules/pets/
 补充说明：
 
 - 小程序登录第一阶段优先落地“微信绑定手机号一键登录”
-- 后端需要基于 `code` 换取 `openid + session_key`，并结合手机号完成用户匹配或创建
+- 后端需要基于 `code` 换取 `openid + session_key`
+- 首次登录时再按 `phone + openid` 完成用户匹配或创建
+- 后续登录时，只要手机号能查到已绑定的 `openid`，即可重新签发 mini token
 - 当前 `POST /auth/wechat-mini/login` 已落地基础真链路
 - 该接口依赖真实可用的 `WECHAT_MINI_APP_ID`、`WECHAT_MINI_APP_SECRET`、mini 端 `code` 和 `phoneCode`
 - 若 mini 端 `TARO_APP_ID` 与服务端 `WECHAT_MINI_APP_ID` 不一致，微信会返回 `40029 invalid code`
