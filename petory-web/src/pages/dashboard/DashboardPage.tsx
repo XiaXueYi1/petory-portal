@@ -1,4 +1,4 @@
-﻿import { Button, Card, Descriptions, Space, Tag, Typography } from 'antd'
+import { Button, Card, Descriptions, Space, Tag, Typography } from 'antd'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { logout } from '@/features/auth/api'
 import { useAuthStore } from '@/app/store/auth.store'
@@ -20,11 +20,29 @@ export function DashboardPage() {
     <section className="grid gap-6">
       <Card
         bordered={false}
-        className="overflow-hidden !rounded-[32px] !bg-white/78 !shadow-[var(--app-shadow)] backdrop-blur-xl"
+        className="overflow-hidden !rounded-[32px] !border-0 !bg-[linear-gradient(135deg,_rgba(23,71,255,0.16),_rgba(255,255,255,0.84))] !shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
+      >
+        <Space direction="vertical" size={12} className="w-full">
+          <Tag color="blue" className="w-fit">
+            authenticated
+          </Tag>
+          <Typography.Title level={2} style={{ margin: 0 }}>
+            Welcome back, {profile?.user.nickname ?? 'Petory user'}
+          </Typography.Title>
+          <Typography.Paragraph style={{ margin: 0, color: 'var(--app-muted)' }}>
+            This is the first real home shell after login. It confirms the
+            cookie session, profile bootstrap, and sign-out flow before the
+            actual business modules arrive.
+          </Typography.Paragraph>
+        </Space>
+      </Card>
+
+      <Card
+        bordered={false}
+        className="overflow-hidden !rounded-[32px] !border-0 !bg-white/82 !shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur-xl"
       >
         <Space direction="vertical" size={18} className="w-full">
           <Space size={12} wrap>
-            <Tag color="blue">authenticated</Tag>
             {profile?.roles.map((role) => (
               <Tag key={role} color="gold">
                 {role}
@@ -33,15 +51,13 @@ export function DashboardPage() {
           </Space>
 
           <div>
-            <Typography.Title level={2} style={{ marginBottom: 8 }}>
-              登录成功
+            <Typography.Title level={3} style={{ marginBottom: 8 }}>
+              Session summary
             </Typography.Title>
-            <Typography.Paragraph
-              style={{ margin: 0, color: 'var(--app-muted)' }}
-            >
-              This is still a temporary home screen. It verifies the auth2 cookie
-              flow, profile bootstrap, and basic sign-out path before the real
-              dashboard, menu tree, and dynamic routes land in later work.
+            <Typography.Paragraph style={{ margin: 0, color: 'var(--app-muted)' }}>
+              The app keeps the current cookie session alive, hydrates profile
+              data on boot, and leaves room for the future navigation tree and
+              business modules.
             </Typography.Paragraph>
           </div>
 
@@ -65,7 +81,10 @@ export function DashboardPage() {
           </Descriptions>
 
           <div className="flex justify-end">
-            <Button loading={logoutMutation.isPending} onClick={() => logoutMutation.mutate()}>
+            <Button
+              loading={logoutMutation.isPending}
+              onClick={() => logoutMutation.mutate()}
+            >
               退出登录
             </Button>
           </div>

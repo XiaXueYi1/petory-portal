@@ -15,14 +15,14 @@ export function RootLayout() {
               {APP_NAME}
             </Typography.Title>
             <Typography.Text style={{ color: 'var(--app-muted)' }}>
-              Auth foundation
+              Portal workspace
             </Typography.Text>
           </div>
 
           <Space size={10} wrap>
             <Tag color="blue">/v1 auth</Tag>
             <Tag color="gold">cookie first</Tag>
-            <Tag color="cyan">admin ready</Tag>
+            <Tag color="cyan">home ready</Tag>
           </Space>
         </div>
       </Layout.Header>

@@ -24,4 +24,8 @@ export const env = {
     true,
   ),
   authRefreshPath: import.meta.env.VITE_AUTH_REFRESH_PATH || '/auth/refresh',
+  authPasswordAesKeyBase64:
+    import.meta.env.VITE_AUTH_PASSWORD_AES_KEY_BASE64 || '',
+  authPasswordAesIvBase64:
+    import.meta.env.VITE_AUTH_PASSWORD_AES_IV_BASE64 || '',
 } as const
