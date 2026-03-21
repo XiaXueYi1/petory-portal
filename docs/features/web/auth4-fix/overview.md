@@ -12,6 +12,8 @@
   - `VITE_AUTH_PASSWORD_AES_KEY_BASE64`
   - `VITE_AUTH_PASSWORD_AES_IV_BASE64`
 - `dev` 和 `prod` 两套环境都需要同样的值
+- Web 请求默认走 `/api`
+- Vite dev server 代理 `/api` 到 `localhost:3000/v1`
 - 登录成功后跳转首页
 - 首页作为最小承接页，不扩展业务模块
 

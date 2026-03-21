@@ -22,6 +22,12 @@
 - `VITE_AUTH_PASSWORD_AES_KEY_BASE64`
 - `VITE_AUTH_PASSWORD_AES_IV_BASE64`
 - `dev` 和 `prod` 环境都应保持同样的值
+- `VITE_API_BASE_URL=/api`
+
+## 本地代理
+
+- Vite dev server 将 `/api` 代理到 `http://localhost:3000`
+- 代理会把路径重写到 `/v1`
 
 ## 当前约定
 

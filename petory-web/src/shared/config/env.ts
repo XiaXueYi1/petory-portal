@@ -17,7 +17,7 @@ function parseNumber(value: string | undefined, fallback: number): number {
 
 export const env = {
   appTitle: import.meta.env.VITE_APP_TITLE || 'Petory Portal',
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || '/v1',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || '/api',
   requestTimeout: parseNumber(import.meta.env.VITE_REQUEST_TIMEOUT, 10_000),
   authRefreshEnabled: parseBoolean(
     import.meta.env.VITE_AUTH_REFRESH_ENABLED,
