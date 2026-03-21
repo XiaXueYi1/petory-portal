@@ -82,30 +82,6 @@
   gap: 28rpx;
 }
 
-.login-page__summary {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16rpx;
-}
-
-.login-page__summary-item {
-  padding: 22rpx 16rpx;
-  border-radius: 24rpx;
-  background: var(--pt-mini-color-bg-soft);
-}
-
-.login-page__summary-label {
-  display: block;
-  margin-bottom: 10rpx;
-  color: var(--pt-mini-color-text-secondary);
-  font-size: 20rpx;
-}
-
-.login-page__summary-value {
-  font-size: 26rpx;
-  font-weight: 600;
-}
-
 .login-page__field {
   display: flex;
   flex-direction: column;
@@ -163,16 +139,6 @@
 
 .login-page__button::after {
   border: none;
-}
-
-.login-page__button--ghost {
-  background: rgba(255, 255, 255, 0.76);
-  color: var(--pt-mini-color-text-primary);
-  box-shadow: none;
-}
-
-.login-page__button--danger {
-  background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
 }
 
 .login-page__footer {

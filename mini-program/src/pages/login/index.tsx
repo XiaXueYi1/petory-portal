@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button, Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { miniEnv } from '@/shared/config/env'
 import { miniHttp } from '@/shared/request'
 import { loginWithMiniPhoneAppCode } from '@/features/auth/api'
 import type { MiniPhoneAppCodeLoginRequest } from '@/features/auth'
@@ -20,10 +19,8 @@ const PHONE_PATTERN = /^1[3-9]\d{9}$/
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
   const [stage, setStage] = useState<LoginStage>('idle')
-  const [statusText, setStatusText] = useState('Enter your phone number to sign in.')
-  const [hintText, setHintText] = useState(
-    'Mini auth4 uses phone + appCode(code) as the default login path and stores a long-lived Bearer token locally.'
-  )
+  const [statusText, setStatusText] = useState('Enter your phone number to continue.')
+  const [hintText, setHintText] = useState('Mini auth4 uses phone + appCode(code) as the login path.')
   const [profileName, setProfileName] = useState('')
 
   const handlePhoneChange = (event: PhoneInputEvent) => {
@@ -46,8 +43,8 @@ export default function LoginPage() {
 
     try {
       setStage('submitting')
-      setStatusText('Fetching a fresh WeChat login code...')
-      setHintText('The login button always fetches a fresh appCode(code) at submit time.')
+      setStatusText('Signing you in...')
+      setHintText('A fresh appCode(code) is fetched at submit time.')
 
       const loginResult = await Taro.login()
       const code = loginResult.code?.trim()
@@ -75,12 +72,16 @@ export default function LoginPage() {
         'Petory User'
       )
       setStage('success')
-      setStatusText('Login successful. Token stored locally.')
-      setHintText('Mini auth4 does not use a refresh flow. If the token expires, sign in again.')
+      setStatusText('Login successful. Opening the home page...')
+      setHintText('The token is stored locally. The app will jump to the home page now.')
 
       Taro.showToast({
         title: 'Login successful',
         icon: 'success'
+      })
+
+      Taro.reLaunch({
+        url: '/pages/index/index'
       })
     } catch (error) {
       console.error('mini auth4 login failed', error)
@@ -103,33 +104,14 @@ export default function LoginPage() {
 
       <View className='login-page__hero'>
         <Text className='login-page__badge'>PETORY MINI</Text>
-        <Text className='login-page__title'>Phone Login</Text>
+        <Text className='login-page__title'>Welcome back</Text>
         <Text className='login-page__subtitle'>
-          The default path is phone + appCode(code), which fits the current personal mini-program setup.
+          Sign in with your phone number. The current path is phone + appCode(code) for the personal mini-program setup.
         </Text>
       </View>
 
       <View className='login-page__panel'>
         <View className='login-page__stack'>
-          <View className='login-page__summary'>
-            <View className='login-page__summary-item'>
-              <Text className='login-page__summary-label'>Strategy</Text>
-              <Text className='login-page__summary-value'>
-                {miniEnv.loginStrategy}
-              </Text>
-            </View>
-            <View className='login-page__summary-item'>
-              <Text className='login-page__summary-label'>Token</Text>
-              <Text className='login-page__summary-value'>Bearer</Text>
-            </View>
-            <View className='login-page__summary-item'>
-              <Text className='login-page__summary-label'>Status</Text>
-              <Text className='login-page__summary-value'>
-                {miniEnv.wechatPhoneLoginStatus}
-              </Text>
-            </View>
-          </View>
-
           <View className='login-page__field'>
             <Text className='login-page__field-label'>Phone Number</Text>
             <Input
@@ -141,7 +123,7 @@ export default function LoginPage() {
               onInput={handlePhoneChange}
             />
             <Text className='login-page__field-tip'>
-              The page will fetch a fresh appCode(code) only when you tap Login.
+              A fresh appCode(code) is fetched only when you tap Login.
             </Text>
           </View>
 
@@ -157,16 +139,14 @@ export default function LoginPage() {
             onClick={handleLogin}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Signing in...' : 'Login'}
+            {isSubmitting ? 'Signing in...' : 'Continue'}
           </Button>
         </View>
       </View>
 
       <View className='login-page__footer'>
         <Text>After login, the token is saved locally and future requests automatically carry the Authorization header.</Text>
-        <Text>
-          Mini auth4 does not use refresh. When the token expires, return to the login page and sign in again.
-        </Text>
+        <Text>When the token expires, return to the login page and sign in again.</Text>
       </View>
     </View>
   )
