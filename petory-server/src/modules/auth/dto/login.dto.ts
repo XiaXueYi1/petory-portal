@@ -9,6 +9,6 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty()
-  @Length(6, 128)
+  @Length(1, 1024)
   declare password: string;
 }

@@ -47,7 +47,9 @@ export class AuthService {
   ): Promise<LoginResponseDto> {
     const clientType = this.getClientType(request);
     const phone = payload.phone.trim();
-    const password = payload.password.trim();
+    const password = this.authPasswordService.decryptWebLoginPassword(
+      payload.password.trim(),
+    );
     const user = await this.authRepository.findPasswordUserByPhone(phone);
 
     if (
@@ -267,6 +269,12 @@ export class AuthService {
     if (user.status !== 'active') {
       throw new UnauthorizedException('User not found or inactive');
     }
+
+    await this.authRepository.ensureWebPasswordIdentity({
+      userId: user.userId,
+      phone: payload.phone.trim(),
+      passwordHash: this.authPasswordService.hashPassword('123456'),
+    });
 
     await this.authRepository.markUserLastLogin(user.userId);
 

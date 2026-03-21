@@ -189,6 +189,38 @@ export class AuthRepository {
     return savedUser;
   }
 
+  async ensureWebPasswordIdentity(input: {
+    userId: string;
+    phone: string;
+    passwordHash: string;
+  }): Promise<void> {
+    const existingIdentity = await this.prisma.userAuthIdentity.findUnique({
+      where: {
+        provider_providerUserId: {
+          provider: AuthProvider.WEB_PASSWORD,
+          providerUserId: input.phone,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (existingIdentity) {
+      return;
+    }
+
+    await this.prisma.userAuthIdentity.create({
+      data: {
+        userId: input.userId,
+        provider: AuthProvider.WEB_PASSWORD,
+        providerUserId: input.phone,
+        credentialHash: input.passwordHash,
+      },
+    });
+  }
+
   async markUserLastLogin(userId: string): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
