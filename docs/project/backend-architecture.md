@@ -309,7 +309,9 @@ modules/pets/
 
 - 小程序登录第一阶段优先落地“微信绑定手机号一键登录”
 - 后端需要基于 `code` 换取 `openid + session_key`，并结合手机号完成用户匹配或创建
-- 当前 `POST /auth/wechat-mini/login` 仅完成接口骨架预留，真实微信平台联调尚未落地
+- 当前 `POST /auth/wechat-mini/login` 已落地基础真链路
+- 该接口依赖真实可用的 `WECHAT_MINI_APP_ID`、`WECHAT_MINI_APP_SECRET`、mini 端 `code` 和 `phoneCode`
+- 若 mini 端 `TARO_APP_ID` 与服务端 `WECHAT_MINI_APP_ID` 不一致，微信会返回 `40029 invalid code`
 
 ### 9.3 RBAC 模块职责
 

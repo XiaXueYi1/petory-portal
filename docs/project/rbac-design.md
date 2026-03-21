@@ -459,6 +459,7 @@ Web 与小程序要统一：
 - `accessToken` 专门负责当前接口鉴权
 - `refreshToken` 不直接参与业务接口鉴权，只负责无感续签新的 `accessToken`
 - 前端通过 `/auth/profile` 获取用户初始化信息
+- 账号形态收敛为 `phone + password`
 
 流程：
 
@@ -476,8 +477,9 @@ Web 登录
 
 - 小程序通过 `wx.login()` 获取 `code`
 - 服务端使用 `code + appid + secret` 换取 `openid + session_key`
-- 第一阶段优先接入微信绑定手机号一键登录
-- 服务端匹配或创建用户
+- 个人主体场景下，前端输入手机号并提交 `phone + appCode(code)`
+- 服务端按 `phone + openid` 匹配或创建用户
+- 若库中无对应用户则自动注册，默认随机昵称、空头像
 - 服务端签发 Bearer JWT
 - 小程序使用 `Authorization` 请求接口
 
@@ -486,10 +488,11 @@ Web 登录
 ```txt
 wx.login()
  -> code
+ -> 前端输入 phone
  -> /auth/wechat-mini/login
  -> 服务端换 openid + session_key
- -> 获取微信绑定手机号
- -> 查询或创建 user
+ -> 查询 phone + openid
+ -> 不存在则自动创建 user
  -> 计算 roles / permissions / menus
  -> 返回 access_token + profile
 ```
@@ -507,10 +510,12 @@ wx.login()
 
 - Web：`accessToken + refreshToken` 双 Cookie
 - Mini Program：Bearer JWT
-- Mini Program 第一阶段优先走微信绑定手机号一键登录
+- Mini Program 现阶段主路径为 `phone + appCode(code)` 登录
+- 原“微信绑定手机号一键登录”方案保留文档，但当前不作为默认实现
 - 两端统一用户、角色、权限、菜单模型
 - 两端统一通过 `/auth/profile` 收敛初始化信息
 - 后端 `auth` 登录实现必须兼容这两种类型，不应只面向单一端设计
+- Web Cookie token 与 mini Bearer token 不会天然冲突，但必须在服务端按 `clientType` 区分 TTL 与策略
 
 ---
 

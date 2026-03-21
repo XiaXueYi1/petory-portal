@@ -11,6 +11,7 @@ Build a minimal mini-program login baseline that supports only WeChat phone-numb
 - Submit phone auth code to server login API
 - Persist `accessToken` into mini request layer
 - Keep Sass as styling baseline
+- Fetch a fresh `Taro.login()` code right before submit instead of caching it on page entry
 
 ## Env Mode (Official Taro)
 
@@ -39,4 +40,10 @@ Runtime custom env keys use `TARO_APP_` prefix:
 
 - No real WeChat platform e2e verification yet
 - No post-login business home page yet
+
+## Runtime Notes
+
+- `getPhoneNumber` must return a real `phoneCode`; if the callback does not provide one, frontend should stop locally before calling the server
+- `phoneCode` may be empty when the user denies authorization or when the current test environment does not provide real phone-number capability
+- `code` from `Taro.login()` is a short-lived one-time credential and should be refreshed before each submit
 

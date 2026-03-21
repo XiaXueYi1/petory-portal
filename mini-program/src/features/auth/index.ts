@@ -1,7 +1,6 @@
 export interface MiniWechatPhoneLoginRequest {
-  loginCode: string
+  code: string
   phoneCode: string
-  clientType: 'mini-program'
 }
 
 export interface MiniAuthProfile {

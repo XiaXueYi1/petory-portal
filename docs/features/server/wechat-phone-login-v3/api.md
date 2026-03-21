@@ -69,6 +69,12 @@ x-client-type: mini-program
 - `401`: 微信 code / phoneCode 无效，或用户状态异常
 - `502`: 微信平台返回错误或响应缺失关键字段
 
+排查补充：
+
+- 如果微信返回 `40029 invalid code`，优先检查 mini 端 `TARO_APP_ID` 与服务端 `WECHAT_MINI_APP_ID` 是否为同一个小程序
+- `code` 为一次性短时凭证，重试前应重新调用 `Taro.login()` 获取新 `code`
+- `phoneCode` 也应使用按钮回调产生的最新值，不应长期缓存复用
+
 ## 兼容说明
 
 - 该轮没有修改 Web `accessToken + refreshToken` Cookie 流程

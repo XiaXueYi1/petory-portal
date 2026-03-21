@@ -350,7 +350,8 @@ Mini Program：
 当前落地边界：
 
 - Bearer Token 请求模式已经在小程序请求层设计中落地
-- 微信平台真实能力尚未接入，手机号一键登录目前仍是明确设计方向，不应写成已完成
+- 微信手机号一键登录基础真链路已经接入，但仍依赖真实可用的 appid / secret / code / phoneCode
+- mini 端 `TARO_APP_ID` 与服务端 `WECHAT_MINI_APP_ID` 必须指向同一个微信小程序
 
 ### 9.4 统一返回结构
 

@@ -14,6 +14,8 @@
 - Runtime env access now uses `TARO_APP_*` keys
 - Removed legacy `.env.dev` and `.env.prod`
 - Keep Sass baseline, no Tailwind CSS introduced
+- Simplified login flow to fetch a fresh `Taro.login()` code at submit time
+- Added clearer local handling for missing WeChat phone authorization code
 
 ## Known Limits
 

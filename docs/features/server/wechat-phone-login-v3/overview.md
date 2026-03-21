@@ -35,3 +35,8 @@
 - 当前不做完整微信开放平台兜底或容错模拟
 - 未扩展完整 RBAC 管理能力
 - 合入 `master` 后需要把路径别名约束同步到主分支项目文档
+
+## 已知联调问题
+
+- 若 mini 端 `TARO_APP_ID` 与服务端 `.env` 中的 `WECHAT_MINI_APP_ID` 不一致，`jscode2session` 会直接返回 `40029 invalid code`
+- `code` 是一次性短时凭证，失败重试时必须重新执行 `Taro.login()`

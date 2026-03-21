@@ -204,6 +204,13 @@ REDIS_PORT=6379
 - `mini-program/.env.development` 已包含 Bearer Token header、超时、登录策略等字段（均为 `TARO_APP_` 前缀）
 - `mini-program/.env.production` 当前主要作为占位，不应视为生产可用配置
 
+当前认证策略修正补充：
+
+- Web 当前收敛方向为 `phone + password + accessToken/refreshToken Cookie`
+- mini-program 现阶段收敛方向为 `phone + appCode(code) + Bearer Token`
+- mini-program Bearer Token 计划使用更长有效期，最少 7 天，且当前不强制要求 refresh
+- 原“微信绑定手机号一键登录”方案文档保留，但由于个人小程序主体限制，当前不作为默认实现路径
+
 Taro 平台与模式补充：
 
 - 当前小程序主题和跨端差异处理统一以 `process.env.TARO_ENV` 为正式入口

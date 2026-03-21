@@ -6,7 +6,7 @@
 
 本文档已整合 `docs/project/db-prd.md` 的设计内容，作为数据库设计主文档。
 
-需要特别说明：当前仓库中尚未真正接入 Prisma、PostgreSQL 或 migration，因此本文档是“目标设计稿 + 落地约束说明”，不是“当前数据库现状”。
+需要特别说明：当前仓库中的数据库能力已经开始落地，但本文档仍以“目标设计稿 + 落地约束说明”为主，并需持续根据真实实现修订。
 
 ---
 
@@ -14,13 +14,12 @@
 
 当前已确认的真实状态：
 
-- `petory-server/` 尚未引入 Prisma
-- 仓库中还没有 `prisma/` 目录
-- 当前没有数据库 schema 文件
-- 当前没有迁移文件
-- 当前也没有种子数据脚本
+- `petory-server/` 已接入 Prisma 与 PostgreSQL
+- 当前认证相关表已经有本地开发落地基线
+- migration 流程仍未完全收敛
+- 文档中部分字段仍属于设计方向，需要继续与真实实现同步
 
-因此，下面的表结构设计仅用于后续落地时对齐方向，不应表述为“当前已经实现”。
+因此，下面的表结构设计既包含当前方向，也包含后续待收敛项，不应机械理解为“全部已完成”。
 
 ---
 
@@ -138,15 +137,22 @@ DATABASE_URL="postgresql://postgres:123456@localhost:5432/postgres?schema=public
 |---|---|---|
 | id | UUID PK | 主键 |
 | user_id | UUID FK | 关联用户 |
-| provider | VARCHAR NOT NULL | `web_password / wechat_mini_program` |
-| provider_user_id | VARCHAR NOT NULL | 邮箱 / openid / unionid 等 |
-| credential_hash | TEXT NULL | 密码登录时使用 |
+| provider | VARCHAR NOT NULL | `web_password / mini_openid / wechat_mini_program_reserved` |
+| provider_user_id | VARCHAR NOT NULL | phone / openid / unionid 等 |
+| credential_hash | TEXT NULL | Web 密码哈希等 |
 | created_at | TIMESTAMP NOT NULL | 创建时间 |
 | updated_at | TIMESTAMP NOT NULL | 更新时间 |
 
 约束建议：
 
 - `(provider, provider_user_id)` 唯一
+
+补充说明：
+
+- Web 端推荐收敛为 `phone + password`
+- 小程序现阶段推荐使用 `phone + appCode(code)` 登录，但 `appCode` 不建议直接入库
+- 更稳妥的绑定方式是服务端实时用 `appCode` 换取 `openid`，并在 `user_auth_identities` 中保存 `mini_openid`
+- 当小程序端手机号首次登录且库中不存在该用户时，可自动创建用户，并给默认随机昵称、空头像
 
 ---
 
