@@ -1,5 +1,5 @@
 export type LoginPayload = {
-  username: string
+  phone: string
   password: string
 }
 
