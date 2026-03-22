@@ -16,7 +16,8 @@ describe('Auth auth2 helpers', () => {
     AUTH_WEB_REFRESH_COOKIE_NAME: 'pt_refresh_token',
     AUTH_COOKIE_SECURE: 'false',
     AUTH_COOKIE_SAME_SITE: 'lax',
-    AUTH_WEB_PASSWORD_AES_KEY_BASE64: 'ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=',
+    AUTH_WEB_PASSWORD_AES_KEY_BASE64:
+      'ciCsw/I6/PwLnqEbZTjt/igEKI3MuP4QTn1rQaWciMo=',
     AUTH_WEB_PASSWORD_AES_IV_BASE64: 'Ea4hK8529EyK70+w',
   });
 
@@ -32,9 +33,8 @@ describe('Auth auth2 helpers', () => {
 
   it('encrypts and decrypts web login passwords', () => {
     const passwordService = new AuthPasswordService(configService);
-    const encryptedPassword = passwordService.encryptWebLoginPassword(
-      'petory-password',
-    );
+    const encryptedPassword =
+      passwordService.encryptWebLoginPassword('petory-password');
 
     expect(passwordService.decryptWebLoginPassword(encryptedPassword)).toBe(
       'petory-password',

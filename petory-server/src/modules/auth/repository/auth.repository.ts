@@ -147,7 +147,7 @@ export class AuthRepository {
       (await this.prisma.user.create({
         data: {
           phone: input.phoneNumber,
-          nickname: this.buildWechatMiniNickname(input.phoneNumber),
+          nickname: this.buildWechatMiniNickname(),
           avatar: '',
           status: UserStatus.ACTIVE,
         },
@@ -194,25 +194,18 @@ export class AuthRepository {
     phone: string;
     passwordHash: string;
   }): Promise<void> {
-    const existingIdentity = await this.prisma.userAuthIdentity.findUnique({
+    await this.prisma.userAuthIdentity.upsert({
       where: {
         provider_providerUserId: {
           provider: AuthProvider.WEB_PASSWORD,
           providerUserId: input.phone,
         },
       },
-      select: {
-        id: true,
-        userId: true,
+      update: {
+        userId: input.userId,
+        credentialHash: input.passwordHash,
       },
-    });
-
-    if (existingIdentity) {
-      return;
-    }
-
-    await this.prisma.userAuthIdentity.create({
-      data: {
+      create: {
         userId: input.userId,
         provider: AuthProvider.WEB_PASSWORD,
         providerUserId: input.phone,
@@ -444,7 +437,7 @@ export class AuthRepository {
       }));
   }
 
-  private buildWechatMiniNickname(phoneNumber: string): string {
+  private buildWechatMiniNickname(): string {
     const suffix = randomBytes(2).toString('hex').toUpperCase();
     return `WeChat User${suffix}`;
   }
