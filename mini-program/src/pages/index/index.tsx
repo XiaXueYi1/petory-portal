@@ -6,7 +6,7 @@ import './index.scss'
 
 export default function HomePage() {
   const [tokenPreview, setTokenPreview] = useState('')
-  const nickname = 'Petory User'
+  const nickname = 'Petory 用户'
 
   useEffect(() => {
     const token = miniHttp.getToken()
@@ -22,7 +22,7 @@ export default function HomePage() {
   const handleLogout = () => {
     miniHttp.clearToken()
     Taro.showToast({
-      title: 'Logged out',
+      title: '已退出登录',
       icon: 'none'
     })
     Taro.reLaunch({ url: '/pages/login/index' })
@@ -35,30 +35,38 @@ export default function HomePage() {
 
       <View className='home-page__hero'>
         <Text className='home-page__badge'>PETORY MINI</Text>
-        <Text className='home-page__title'>Welcome back</Text>
+        <Text className='home-page__title'>今天也要照顾好小家伙</Text>
         <Text className='home-page__subtitle'>
-          {nickname} is signed in. The token is stored locally and future requests carry the Bearer header automatically.
+          {nickname} 已登录成功，这里是 Petory Mini 的首页承接页。
         </Text>
       </View>
 
       <View className='home-page__card'>
-        <View className='home-page__row'>
-          <Text className='home-page__label'>Login mode</Text>
-          <Text className='home-page__value'>phone + appCode(code)</Text>
+        <View className='home-page__grid'>
+          <View className='home-page__tile'>
+            <Text className='home-page__label'>登录方式</Text>
+            <Text className='home-page__value'>phone + appCode(code)</Text>
+          </View>
+          <View className='home-page__tile'>
+            <Text className='home-page__label'>Token</Text>
+            <Text className='home-page__value'>{tokenPreview || '已保存到本地'}</Text>
+          </View>
         </View>
-        <View className='home-page__row'>
-          <Text className='home-page__label'>Token</Text>
-          <Text className='home-page__value'>{tokenPreview || 'Bearer token stored'}</Text>
+
+        <View className='home-page__feature'>
+          <Text className='home-page__feature-title'>今日提醒</Text>
+          <Text className='home-page__feature-text'>登录流程已经打通，后续可以直接在这里扩宠物档案、记录和提醒模块。</Text>
         </View>
-        <View className='home-page__row'>
-          <Text className='home-page__label'>Next step</Text>
-          <Text className='home-page__value'>Build the real pet dashboard later</Text>
+
+        <View className='home-page__feature home-page__feature--soft'>
+          <Text className='home-page__feature-title'>当前状态</Text>
+          <Text className='home-page__feature-text'>登录态已保存，本地请求会自动携带 Authorization 头。</Text>
         </View>
       </View>
 
       <View className='home-page__actions'>
         <Button className='home-page__button' onClick={handleLogout}>
-          Log out
+          退出登录
         </Button>
       </View>
     </View>
