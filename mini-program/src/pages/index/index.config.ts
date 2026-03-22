@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: 'Petory Home'
+  navigationBarTitleText: 'Petory Mini 首页'
 })

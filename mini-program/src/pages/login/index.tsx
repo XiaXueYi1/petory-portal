@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Button, Input, Text, View } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { miniHttp } from '@/shared/request'
 import { loginWithMiniPhoneAppCode } from '@/features/auth/api'
 import type { MiniPhoneAppCodeLoginRequest } from '@/features/auth'
+import { miniHttp } from '@/shared/request'
 import './index.scss'
 
 type LoginStage = 'idle' | 'submitting' | 'success' | 'error'
@@ -19,9 +19,8 @@ const PHONE_PATTERN = /^1[3-9]\d{9}$/
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
   const [stage, setStage] = useState<LoginStage>('idle')
-  const [statusText, setStatusText] = useState('Enter your phone number to continue.')
-  const [hintText, setHintText] = useState('Mini auth4 uses phone + appCode(code) as the login path.')
-  const [profileName, setProfileName] = useState('')
+  const [statusText, setStatusText] = useState('输入手机号，继续进入 Petory Mini。')
+  const [hintText, setHintText] = useState('当前登录方式为手机号 + appCode(code)，登录后会自动进入首页。')
 
   const handlePhoneChange = (event: PhoneInputEvent) => {
     setPhone(event.detail?.value ?? '')
@@ -32,10 +31,10 @@ export default function LoginPage() {
 
     if (!PHONE_PATTERN.test(normalizedPhone)) {
       setStage('error')
-      setStatusText('Please enter a valid phone number.')
-      setHintText('Use a valid mainland China mobile number, then try again.')
+      setStatusText('请输入正确的手机号。')
+      setHintText('请填写 11 位大陆手机号后再继续。')
       Taro.showToast({
-        title: 'Invalid phone number',
+        title: '手机号格式不正确',
         icon: 'none'
       })
       return
@@ -43,8 +42,8 @@ export default function LoginPage() {
 
     try {
       setStage('submitting')
-      setStatusText('Signing you in...')
-      setHintText('A fresh appCode(code) is fetched at submit time.')
+      setStatusText('正在登录中...')
+      setHintText('登录时会实时获取一份新的 appCode(code)。')
 
       const loginResult = await Taro.login()
       const code = loginResult.code?.trim()
@@ -65,18 +64,12 @@ export default function LoginPage() {
       }
 
       miniHttp.setToken(response.accessToken)
-
-      setProfileName(
-        response.profile?.user?.nickname ||
-        response.profile?.user?.username ||
-        'Petory User'
-      )
       setStage('success')
-      setStatusText('Login successful. Opening the home page...')
-      setHintText('The token is stored locally. The app will jump to the home page now.')
+      setStatusText('登录成功，正在进入首页...')
+      setHintText('登录态已保存，后续请求会自动携带 Authorization 头。')
 
       Taro.showToast({
-        title: 'Login successful',
+        title: '登录成功',
         icon: 'success'
       })
 
@@ -84,12 +77,12 @@ export default function LoginPage() {
         url: '/pages/index/index'
       })
     } catch (error) {
-      console.error('mini auth4 login failed', error)
+      console.error('mini auth5 login failed', error)
       setStage('error')
-      setStatusText('Login failed. Please try again later.')
-      setHintText('Check the phone number, backend service, and WeChat login code.')
+      setStatusText('登录失败，请稍后再试。')
+      setHintText('请检查手机号、后端服务和微信登录码是否可用。')
       Taro.showToast({
-        title: 'Login failed',
+        title: '登录失败',
         icon: 'none'
       })
     }
@@ -104,32 +97,42 @@ export default function LoginPage() {
 
       <View className='login-page__hero'>
         <Text className='login-page__badge'>PETORY MINI</Text>
-        <Text className='login-page__title'>Welcome back</Text>
+        <Text className='login-page__title'>欢迎回来</Text>
         <Text className='login-page__subtitle'>
-          Sign in with your phone number. The current path is phone + appCode(code) for the personal mini-program setup.
+          记录宠物的每一天，从一次登录开始。输入手机号即可进入 Petory Mini。
         </Text>
       </View>
 
       <View className='login-page__panel'>
+        <View className='login-page__summary'>
+          <View className='login-page__summary-item'>
+            <Text className='login-page__summary-label'>登录方式</Text>
+            <Text className='login-page__summary-value'>phone + appCode(code)</Text>
+          </View>
+          <View className='login-page__summary-item'>
+            <Text className='login-page__summary-label'>登录后</Text>
+            <Text className='login-page__summary-value'>自动进入首页</Text>
+          </View>
+        </View>
+
         <View className='login-page__stack'>
           <View className='login-page__field'>
-            <Text className='login-page__field-label'>Phone Number</Text>
+            <Text className='login-page__field-label'>手机号</Text>
             <Input
               className='login-page__input'
               type='number'
               maxlength={11}
-              placeholder='Enter your phone number'
+              placeholder='请输入手机号'
               value={phone}
               onInput={handlePhoneChange}
             />
             <Text className='login-page__field-tip'>
-              A fresh appCode(code) is fetched only when you tap Login.
+              点击登录时会实时获取一份新的 appCode(code)。
             </Text>
           </View>
 
           <View className='login-page__note'>
             <Text>{statusText}</Text>
-            {profileName ? <Text>{`, ${profileName}`}</Text> : null}
             <View className='login-page__divider' />
             <Text>{hintText}</Text>
           </View>
@@ -139,14 +142,14 @@ export default function LoginPage() {
             onClick={handleLogin}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Signing in...' : 'Continue'}
+            {isSubmitting ? '登录中...' : '立即登录'}
           </Button>
         </View>
       </View>
 
       <View className='login-page__footer'>
-        <Text>After login, the token is saved locally and future requests automatically carry the Authorization header.</Text>
-        <Text>When the token expires, return to the login page and sign in again.</Text>
+        <Text>登录成功后会自动进入首页，登录态保存在本地。</Text>
+        <Text>如果 token 失效，回到此页重新登录即可。</Text>
       </View>
     </View>
   )
