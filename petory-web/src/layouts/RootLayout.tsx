@@ -22,7 +22,7 @@ export function RootLayout() {
           <Space size={10} wrap>
             <Tag color="blue">/v1 auth</Tag>
             <Tag color="gold">cookie first</Tag>
-            <Tag color="cyan">home ready</Tag>
+            <Tag color="cyan">workspace live</Tag>
           </Space>
         </div>
       </Layout.Header>
