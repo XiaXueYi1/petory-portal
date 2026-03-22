@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { getProfile, login } from '@/features/auth/api'
 import type { AuthProfile, LoginPayload } from '@/features/auth/api'
 import { useAuthStore } from '@/app/store/auth.store'
-import { env } from '@/shared/config/env'
 import { APP_NAME } from '@/shared/constants/app'
 import { encryptLoginPassword } from '@/shared/lib/crypto'
 import { ApiError } from '@/shared/lib/request'
@@ -67,61 +66,63 @@ export function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(23,71,255,0.18),_transparent_36%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.08),_transparent_32%),linear-gradient(180deg,_#f7f9ff_0%,_#eef4ff_100%)]" />
+    <main className="relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(23,71,255,0.22),_transparent_32%),radial-gradient(circle_at_top_right,_rgba(255,176,59,0.22),_transparent_26%),linear-gradient(180deg,_#f7f9ff_0%,_#eef4ff_100%)]" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-80 bg-[linear-gradient(135deg,_rgba(23,71,255,0.06),_transparent_55%)]" />
 
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[1.05fr_420px]">
-        <section className="rounded-[36px] border border-white/70 bg-white/55 p-6 shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl sm:p-8 lg:p-10">
-          <Space direction="vertical" size={18} className="w-full">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[1.05fr_440px]">
+        <section className="relative overflow-hidden rounded-[36px] border border-white/70 bg-[rgba(255,255,255,0.54)] p-6 shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl sm:p-8 lg:p-10">
+          <div className="absolute right-6 top-6 h-24 w-24 rounded-full bg-[rgba(23,71,255,0.12)] blur-2xl" />
+          <Space direction="vertical" size={22} className="relative w-full">
             <span className="inline-flex w-fit items-center rounded-full border border-[var(--app-border)] bg-white/80 px-4 py-1 text-sm font-medium text-[var(--app-muted)]">
               {APP_NAME}
             </span>
-            <Typography.Title
-              level={1}
-              style={{
-                margin: 0,
-                color: 'var(--app-ink)',
-                fontSize: 'clamp(2.6rem, 5vw, 4.8rem)',
-                lineHeight: 1.02,
-              }}
-            >
-              Welcome back.
-            </Typography.Title>
-            <Typography.Paragraph
-              style={{
-                margin: 0,
-                color: 'var(--app-muted)',
-                fontSize: '1.02rem',
-                maxWidth: 620,
-              }}
-            >
-              Sign in with phone and password. The password field is encrypted
-              before it leaves the browser, then decrypted on the server and
-              checked against the stored hash.
-            </Typography.Paragraph>
+            <div className="max-w-2xl">
+              <Typography.Title
+                level={1}
+                style={{
+                  margin: 0,
+                  color: 'var(--app-ink)',
+                  fontSize: 'clamp(2.8rem, 5vw, 5rem)',
+                  lineHeight: 0.98,
+                }}
+              >
+                Welcome back.
+              </Typography.Title>
+              <Typography.Paragraph
+                style={{
+                  marginTop: 16,
+                  marginBottom: 0,
+                  color: 'var(--app-muted)',
+                  fontSize: '1.04rem',
+                  maxWidth: 640,
+                }}
+              >
+                Sign in to continue managing pets, records, and system access.
+                Your password is encrypted before it leaves the browser, then
+                verified by the server against the stored hash.
+              </Typography.Paragraph>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <InfoBlock label="Login Mode" value="phone + password" />
-              <InfoBlock label="Session" value="cookie" />
-              <InfoBlock label="API Base" value={env.apiBaseUrl} />
+              <FeaturePill title="Fast Access" value="phone + password" />
+              <FeaturePill title="Session" value="cookie first" />
+              <FeaturePill title="Profile" value="auto bootstrap" />
             </div>
           </Space>
         </section>
 
         <Card
           bordered={false}
-          className="overflow-hidden !rounded-[32px] !border-0 !bg-[rgba(255,255,255,0.84)] !shadow-[0_24px_70px_rgba(15,23,42,0.14)] backdrop-blur-xl"
+          className="overflow-hidden !rounded-[32px] !border-0 !bg-[rgba(255,255,255,0.88)] !shadow-[0_24px_70px_rgba(15,23,42,0.14)] backdrop-blur-xl"
         >
-          <Space direction="vertical" size={18} className="w-full">
-            <div>
-              <Typography.Title level={3} style={{ marginBottom: 8 }}>
+          <Space direction="vertical" size={20} className="w-full">
+            <div className="space-y-2">
+              <Typography.Title level={3} style={{ margin: 0 }}>
                 Sign in
               </Typography.Title>
-              <Typography.Paragraph
-                style={{ margin: 0, color: 'var(--app-muted)' }}
-              >
-                Enter your phone number and password. After login the app will
-                bootstrap your profile and go to the home page.
+              <Typography.Paragraph style={{ margin: 0, color: 'var(--app-muted)' }}>
+                Use your phone number and password to continue.
               </Typography.Paragraph>
             </div>
 
@@ -134,6 +135,7 @@ export function LoginPage() {
               initialValues={DEFAULT_ACCOUNT}
               onFinish={handleSubmit}
               autoComplete="off"
+              requiredMark={false}
             >
               <Form.Item
                 label="Phone"
@@ -176,7 +178,7 @@ export function LoginPage() {
                 block
                 loading={loginMutation.isPending}
               >
-                Sign In
+                Sign in to Petory
               </Button>
             </Form>
           </Space>
@@ -186,11 +188,13 @@ export function LoginPage() {
   )
 }
 
-function InfoBlock({ label, value }: { label: string; value: string }) {
+function FeaturePill({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-[24px] border border-[var(--app-border)] bg-white/72 px-4 py-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-      <Typography.Text style={{ display: 'block', color: 'var(--app-muted)' }}>
-        {label}
+      <Typography.Text
+        style={{ display: 'block', color: 'var(--app-muted)', marginBottom: 6 }}
+      >
+        {title}
       </Typography.Text>
       <Typography.Text strong style={{ fontSize: '1rem' }}>
         {value}

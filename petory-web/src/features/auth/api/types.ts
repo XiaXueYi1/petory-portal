@@ -13,6 +13,7 @@ export type AuthUser = {
   nickname: string
   avatar?: string
   email?: string
+  phone?: string
 }
 
 export type AuthMenu = {
